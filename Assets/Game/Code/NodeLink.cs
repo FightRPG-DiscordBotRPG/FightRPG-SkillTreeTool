@@ -1,10 +1,13 @@
-﻿using System.Collections;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class NodeLink : MonoBehaviour
 {
-    public List<NodeSPTree> AllAttachedNodes = new List<NodeSPTree>();
+    public NodeSPTree FirstItem, SecondItem;
+    public delegate void OnSelectionEventHandler(GameObject sender);
+    public event OnSelectionEventHandler OnSelectionEvent;
     // Start is called before the first frame update
     void Start()
     {
@@ -40,8 +43,51 @@ public class NodeLink : MonoBehaviour
 
     void OnMouseDown()
     {
-        GetComponent<LineRenderer>().startColor = Color.yellow;
-        GetComponent<LineRenderer>().endColor = Color.yellow;
+        Debug.Log("On Mouse Down Node Link");
+
+        RaycastHit hit;
+        Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100);
+        if(hit.collider && hit.collider.gameObject == gameObject)
+        {
+            OnSelectionEvent?.Invoke(gameObject);
+        }
+
+    }
+
+    public void Select()
+    {
+        LineRenderer lr = GetComponent<LineRenderer>();
+        lr.startColor = Color.yellow;
+        lr.endColor = Color.yellow;
+    }
+
+    public void UnSelect()
+    {
+        LineRenderer lr = GetComponent<LineRenderer>();
+        lr.startColor = Color.white;
+        lr.endColor = Color.white;
+    }
+
+    public void Remove()
+    {
+        FirstItem?.ClearLink(gameObject);
+        SecondItem?.ClearLink(gameObject);
+        Destroy(gameObject);
+    }
+
+    public NodeSPTree GetOtherNode(NodeSPTree node)
+    {
+        if(FirstItem == node)
+        {
+            return SecondItem;
+        } else if(SecondItem == node)
+        {
+            return FirstItem;
+        }else
+        {
+            return null;
+        }
+
     }
 
 }

@@ -10,7 +10,8 @@ public class NodeSPTree : MonoBehaviour
     public double X = 0d;
     public double Y = 0d;
     public uint Cost = 1;
-    public List<NodeSPTree> Parents = new List<NodeSPTree>(), Children = new List<NodeSPTree>();
+    public List<NodeSPTree> Parents = new List<NodeSPTree>();
+    public List<NodeSPTree> Children = new List<NodeSPTree>();
     public List<GameObject> AllJoinsParents = new List<GameObject>();
     public List<GameObject> AllJoinsChildren = new List<GameObject>();
     public bool IsLocked = false;
@@ -24,62 +25,71 @@ public class NodeSPTree : MonoBehaviour
     public delegate void OnSelectionEventHandler(GameObject sender);
     public event OnSelectionEventHandler OnSelectionEvent;
 
+    public Material NonSelectedMaterial, SelectedMaterial;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     void OnMouseDown()
     {
-        
         OnSelectionEvent?.Invoke(gameObject);
 
-        if(!IsLocked)
+
+        if (!IsLocked)
         {
             distance = Vector3.Distance(transform.position, Camera.main.transform.position);
             dragging = true;
-        } else
+        }
+        else
         {
             // 
             linking = true;
-            spawnedJoin = Instantiate(JoinPrefab, transform.position, Quaternion.identity, transform);
+            spawnedJoin = Instantiate(JoinPrefab, new Vector3(transform.position.x, transform.position.y, 1f), Quaternion.identity, transform);
         }
     }
 
     void OnMouseUp()
     {
         dragging = false;
-        if(spawnedJoin)
+        if (spawnedJoin)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
-            if (hit.collider != null)
+            RaycastHit hit;
+            Physics.Raycast(ray, out hit, 100);
+            if (hit.collider != null && hit.collider != gameObject)
             {
                 NodeSPTree toLink = hit.collider.gameObject.GetComponent<NodeSPTree>();
-                if(toLink && toLink.TryAddParent(this))
+                if (toLink && toLink.TryAddParent(this))
                 {
                     Children.Add(toLink);
                     spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]
-                    { 
-                        new Vector3(transform.position.x, transform.position.y, 0f),
-                        new Vector3(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y)
+                    {
+                        new Vector3(transform.position.x, transform.position.y, 1f),
+                        new Vector3(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y, 1f)
                     });
                     toLink.AllJoinsParents.Add(spawnedJoin);
                     AllJoinsChildren.Add(spawnedJoin);
 
+
                     // All link to me and the other
                     NodeLink nodeLinkScript = spawnedJoin.GetComponent<NodeLink>();
+                    nodeLinkScript.OnSelectionEvent += ReactNodeLinkSelected;
 
-                    nodeLinkScript.AllAttachedNodes.Add(this);
-                    nodeLinkScript.AllAttachedNodes.Add(toLink);
 
-                } else
+                    nodeLinkScript.FirstItem = this;
+                    nodeLinkScript.SecondItem = toLink;
+
+                }
+                else
                 {
                     Destroy(spawnedJoin);
                 }
-            } else
+            }
+            else
             {
                 Destroy(spawnedJoin);
             }
@@ -92,9 +102,24 @@ public class NodeSPTree : MonoBehaviour
         AllJoinsParents.ForEach((GameObject o) => o.GetComponent<NodeLink>().UpdateMesh());
     }
 
+    internal void Remove()
+    {
+        for (int i = AllJoinsChildren.Count - 1; i >= 0; i--)
+        {
+            AllJoinsChildren[i].GetComponent<NodeLink>().Remove();
+        }
+
+        for (int i = AllJoinsParents.Count - 1; i >= 0; i--)
+        {
+            AllJoinsParents[i].GetComponent<NodeLink>().Remove();
+        }
+
+        Destroy(gameObject);
+    }
+
     bool TryAddParent(NodeSPTree newParent)
     {
-        if (!Parents.Contains(newParent))
+        if (!Parents.Contains(newParent) && !Children.Contains(newParent))
         {
             Parents.Add(newParent);
             return true;
@@ -109,16 +134,16 @@ public class NodeSPTree : MonoBehaviour
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Vector3 rayPoint = ray.GetPoint(distance);
-            transform.position = rayPoint;
+            transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z);
 
             // Parent links
-            foreach(GameObject join in AllJoinsParents)
+            foreach (GameObject join in AllJoinsParents)
             {
                 LineRenderer lr = join.GetComponent<LineRenderer>();
                 lr.SetPositions(new[]
                     {
                         lr.GetPosition(0),
-                        new Vector3(transform.position.x, transform.position.y)
+                        new Vector3(transform.position.x, transform.position.y, 1f)
                     });
             }
 
@@ -128,7 +153,7 @@ public class NodeSPTree : MonoBehaviour
                 LineRenderer lr = join.GetComponent<LineRenderer>();
                 lr.SetPositions(new[]
                     {
-                        new Vector3(transform.position.x, transform.position.y),
+                        new Vector3(transform.position.x, transform.position.y, 1f),
                         lr.GetPosition(1),
                     });
             }
@@ -137,8 +162,52 @@ public class NodeSPTree : MonoBehaviour
         if (linking)
         {
             Camera c = Camera.main;
-            spawnedJoin.GetComponent<LineRenderer>().SetPositions(new []{ new Vector3(transform.position.x, transform.position.y, 0f), c.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 0)) });
+            Vector3 pointInWorld = c.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y));
+            pointInWorld.z = 1f;
+            spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]{
+                new Vector3(transform.position.x, transform.position.y, 1f),
+                pointInWorld
+            });
         }
     }
+
+    void ReactNodeLinkSelected(GameObject nodeLink)
+    {
+        OnSelectionEvent?.Invoke(nodeLink);
+    }
+
+    public void ClearLink(GameObject link, bool clearOther=true)
+    {
+        // To Optimize One Day
+        NodeSPTree other = link.GetComponent<NodeLink>().GetOtherNode(this);
+
+        if (AllJoinsChildren.Remove(link))
+        {
+            Children.Remove(other);
+        }
+        if (AllJoinsParents.Remove(link))
+        {
+            Parents.Remove(other);
+        }
+
+        if(clearOther)
+        {
+            // clear other side
+            other.ClearLink(link, false);
+        }
+
+    }
+
+    public void Select()
+    {
+        GetComponent<SpriteRenderer>().material = SelectedMaterial;
+    }
+
+    public void UnSelect()
+    {
+        GetComponent<SpriteRenderer>().material = NonSelectedMaterial;
+    }
+
+
 
 }

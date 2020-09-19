@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3859118785879730187}
   - component: {fileID: 3859118785879730184}
   - component: {fileID: 9220123757668419204}
-  - component: {fileID: -3580700614978818402}
+  - component: {fileID: 5395008694927811508}
   m_Layer: 0
   m_Name: NodeTreePrefab
   m_TagString: Untagged
@@ -102,22 +102,23 @@ MonoBehaviour:
   Cost: 1
   Parents: []
   Children: []
+  AllJoinsParents: []
+  AllJoinsChildren: []
   IsLocked: 0
   id: 0
   JoinPrefab: {fileID: 0}
---- !u!58 &-3580700614978818402
-CircleCollider2D:
+  NonSelectedMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  SelectedMaterial: {fileID: 2100000, guid: dff2718ab1d709044988a5c53d403972, type: 2}
+--- !u!135 &5395008694927811508
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3859118785879730185}
-  m_Enabled: 1
-  m_Density: 1
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.32
+  m_Center: {x: 0, y: 0, z: 0}

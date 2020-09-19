@@ -643,7 +643,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 380854675}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 264.23767, y: -3.7898254, z: -116.32228}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1849926269}
@@ -685,7 +685,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.18431373, g: 0.20784314, b: 0.25882354, a: 1}
+  m_BackGroundColor: {r: 0.084905684, g: 0.084905684, b: 0.084905684, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -988,7 +988,7 @@ GameObject:
   - component: {fileID: 1074027541}
   - component: {fileID: 1074027540}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1356,7 +1356,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 254267942}
   toggleTransition: 1
   graphic: {fileID: 541448339}
@@ -1525,7 +1525,7 @@ GameObject:
   - component: {fileID: 1455583546}
   - component: {fileID: 1455583545}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Separator
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1755,7 +1755,7 @@ GameObject:
   - component: {fileID: 1654126031}
   - component: {fileID: 1654126030}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Node Data
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1834,7 +1834,7 @@ GameObject:
   - component: {fileID: 1764521738}
   - component: {fileID: 1764521737}
   m_Layer: 5
-  m_Name: Image
+  m_Name: Menu Buttons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2118,6 +2118,7 @@ MonoBehaviour:
   NodesGroup: {fileID: 380854675}
   NodeJoinPrefab: {fileID: 4942333199955017864, guid: b63f40bc7deaef643997036774df7adc, type: 3}
   SelectedNode: {fileID: 0}
+  SelectedLink: {fileID: 0}
   TextCostObject: {fileID: 1838970819}
   LockObject: {fileID: 1286369068}
 --- !u!4 &1849926269
@@ -2128,7 +2129,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1849926267}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 748.76965, y: 347.13455, z: -5.2962923}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 380854676}
