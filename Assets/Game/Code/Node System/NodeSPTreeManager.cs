@@ -44,6 +44,20 @@ namespace Assets.Game.Code
             else if (Input.GetKeyDown(KeyCode.N))
             {
                 AddNewNode();
+            } else if (Input.GetKeyDown(KeyCode.Escape) && SelectedNode)
+            {
+                SelectedNode.GetComponent<NodeSPTree>().UnSelect();
+                SelectedNode = null;
+
+
+
+                TMP_InputField fieldCost = TextCostObject.GetComponent<TMP_InputField>();
+                Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
+                Button editNodeButton = EditNodeButton.GetComponent<Button>();
+
+                fieldCost.readOnly = false;;
+                fieldIsLocked.interactable = false;
+                editNodeButton.interactable = true;
             }
 
 
@@ -81,11 +95,33 @@ namespace Assets.Game.Code
             Select(Node);
         }
 
-        private void UpdateIds()
+        public void LoadNodeFromData(NodeData nData)
+        {
+            GameObject Node = Instantiate(EmptyNodePrefab, new Vector3(nData.x, nData.y), Quaternion.identity, NodesGroup.transform);
+            Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
+
+            Nodes.Add(Node);
+
+
+            NodeSPTree script = Node.GetComponent<NodeSPTree>();
+            script.OnSelectionEvent += Select;
+            script.JoinPrefab = NodeJoinPrefab;
+            script.data = nData;
+        }
+
+        public void ReloadAllNodesImages()
+        {
+            foreach(GameObject node in Nodes)
+            {
+                _ = node.GetComponent<NodeSPTree>().UpdateImage();
+            }
+        }
+
+        public void UpdateIds()
         {
             for (int i = 0; i < Nodes.Count; i++)
             {
-                Nodes[i].GetComponent<NodeSPTree>().id = (uint)i + 1;
+                Nodes[i].GetComponent<NodeSPTree>().data.id = i + 1;
             }
         }
 
@@ -125,7 +161,7 @@ namespace Assets.Game.Code
             {
                 SelectedNode = toSelectGameObject;
                 fieldCost.readOnly = false;
-                fieldCost.text = scriptNode.Cost.ToString();
+                fieldCost.text = scriptNode.data.cost.ToString();
 
                 fieldIsLocked.isOn = scriptNode.IsLocked;
                 fieldIsLocked.interactable = true;
@@ -154,7 +190,7 @@ namespace Assets.Game.Code
             try
             {
                 string text = TextCostObject.GetComponent<TMP_InputField>().text;
-                SelectedNode.GetComponent<NodeSPTree>().Cost = (uint)int.Parse(text);
+                SelectedNode.GetComponent<NodeSPTree>().data.cost = int.Parse(text);
                 CostBeforeChange = text;
             }
             catch

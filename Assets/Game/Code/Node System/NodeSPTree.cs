@@ -1,21 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class NodeSPTree : MonoBehaviour
 {
-    public string Image = "";
-    public double X = 0d;
-    public double Y = 0d;
-    public uint Cost = 1;
+
     public List<NodeSPTree> Parents = new List<NodeSPTree>();
     public List<NodeSPTree> Children = new List<NodeSPTree>();
     public List<GameObject> AllJoinsParents = new List<GameObject>();
     public List<GameObject> AllJoinsChildren = new List<GameObject>();
     public bool IsLocked = false;
-    public uint id = 0;
     public GameObject JoinPrefab;
 
     private float distance;
@@ -27,11 +24,15 @@ public class NodeSPTree : MonoBehaviour
 
     public Material NonSelectedMaterial, SelectedMaterial;
 
+    public NodeData data = new NodeData();
+
+    private SpriteRenderer sprite;
+
 
     // Start is called before the first frame update
     void Start()
     {
-
+        sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
     }
 
     void OnMouseDown()
@@ -115,6 +116,21 @@ public class NodeSPTree : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    public async Task UpdateImage()
+    {
+        Texture2D tx = await PSTreeApiManager.Instance.GetTextureNode(data.visuals.id);
+        // It's only called on start but this func may be called before
+        if (!sprite)
+        {
+            sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        }
+
+
+
+        Sprite test = Sprite.Create(tx, new Rect(0f, 0f, tx.width, tx.height), new Vector2(0.5f, 0.5f), 100f);
+        sprite.sprite = test;
     }
 
     bool TryAddParent(NodeSPTree newParent)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Game.Code;
+using SimpleJSON;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -13,12 +15,27 @@ public class PSTreeApiManager : MonoBehaviour
 
     public Image UIFill;
     public TMP_Text LoadingText;
+    public NodeSPTreeManager NodeManager;
 
     public GameObject[] GameRelatedToActivate;
+    public Texture DefaultTextureIfFail;
+
+    static PSTreeApiManager _Instance;
+
+    Dictionary<int, string> PossibleNodesVisuals = new Dictionary<int, string>();
+
+    public static PSTreeApiManager Instance
+    {
+        get
+        {
+            return _Instance;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
     {
+        _Instance = this;
         Load();
     }
 
@@ -32,7 +49,10 @@ public class PSTreeApiManager : MonoBehaviour
     {
         try
         {
-            await LoadAllNodes();
+            await LoadNodesVisuals(0.0f, 0.5f);
+            UIFill.fillAmount = 1f / 2f;
+
+            await LoadAllNodes(0.5f, 1f);
             UIFill.fillAmount = 1;
             GameObject LoadingScreen = UIFill.gameObject.transform.parent.gameObject;
             LoadingScreen.SetActive(false);
@@ -51,28 +71,135 @@ public class PSTreeApiManager : MonoBehaviour
 
     }
 
-    async Task LoadAllNodes()
+    async Task LoadAllNodes(float loadingStart, float loadingMax)
     {
+        float segment = (loadingMax - loadingStart) / 3;
+
         LoadingText.text = "Loading Nodes...";
         UnityWebRequest request = await GetRequestAsync("http://localhost:25012/nodes");
 
-        LoadingText.text = request.downloadHandler.text;
 
-        // TODO: Real loading
+        LoadingText.text = "Parsing Data...";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        JSONArray array = JSON.Parse(request.downloadHandler.text)["nodes"].AsArray;
+
+        float loadingNodeSegment = (loadingStart + segment) - loadingStart / array.Count;
+
+        foreach (JSONNode json in array)
+        {
+            loadingStart += loadingNodeSegment;
+            UIFill.fillAmount = loadingStart;
+            NodeData nData = JsonUtility.FromJson<NodeData>(json.ToString());
+            LoadingText.text = "Loading Node: " + nData.visuals.name;
+
+            NodeManager.LoadNodeFromData(nData);
+        }
+
+        LoadingText.text = "Adding Images to Nodes...";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        NodeManager.UpdateIds();
+        NodeManager.ReloadAllNodesImages();
 
     }
 
-    async Task<UnityWebRequest> GetRequestAsync(string uri)
+    async Task LoadNodesVisuals(float loadingStart, float loadingMax)
     {
-        UnityWebRequest request = UnityWebRequest.Get(uri);
+        float segment = (loadingMax - loadingStart) / 3;
+        LoadingText.text = "Loading Nodes Visuals...";
+
+        PossibleNodesVisuals.Clear();
+        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/nodes/visuals");
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        LoadingText.text = "Parsing Data...";
+
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        JSONNode data = JSON.Parse(request.downloadHandler.text);
+        foreach(JSONNode visual in data["visuals"].Values)
+        {
+            PossibleNodesVisuals[visual["id"]] = visual["icon"];
+        }
+
+        await Task.Delay(1000);
+
+    }
+
+    public async Task<UnityWebRequest> GetRequestAsync(string url, bool throwException=true)
+    {
+        UnityWebRequest request = UnityWebRequest.Get(url);
         await request.SendWebRequest();
-        if(request.isNetworkError)
+        if(request.isNetworkError && throwException)
         {
             throw new Exception(request.error);
         } else
         {
             return request;
         }
+    }
+
+    public async Task<Texture> GetTextureAsync(string url)
+    {
+        if(url.StartsWith("data:image") || url.StartsWith("base64,"))
+        {
+            try
+            {
+                byte[] imageBytes = Convert.FromBase64String(url.Substring(url.IndexOf("base64,") + 7));
+                Texture2D tex = new Texture2D(0, 0);
+                tex.LoadImage(imageBytes);
+
+                return tex;
+            } catch(Exception ex)
+            {
+                Debug.LogError(ex);
+                return DefaultTextureIfFail;
+            }
+
+
+        } else
+        {
+            UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+            await request.SendWebRequest();
+
+            if (request.isNetworkError)
+            {
+                return DefaultTextureIfFail;
+            } else
+            {
+                return ((DownloadHandlerTexture)request.downloadHandler).texture;
+            }
+        }
+
+        
+
+
+    }
+
+    public async Task<Texture2D> GetTextureNode(int idVisual)
+    {
+        Texture2D tex;
+        string value = "";
+        if(PossibleNodesVisuals.TryGetValue(idVisual, out value))
+        {
+            tex =(Texture2D) await GetTextureAsync(value);
+        } else
+        {
+            tex = (Texture2D) DefaultTextureIfFail;
+        }
+
+        RenderTexture rt = new RenderTexture(64, 64, 24);
+        RenderTexture.active = rt;
+        Graphics.Blit(tex, rt);
+        Texture2D result = new Texture2D(64, 64);
+        result.ReadPixels(new Rect(0, 0, 64, 64), 0, 0);
+        result.Apply();
+        return result;
     }
 
 }

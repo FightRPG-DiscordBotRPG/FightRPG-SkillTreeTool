@@ -1767,7 +1767,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 1
+  m_FillAmount: 0
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -4529,7 +4529,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1931912097}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: DatabaseManager, Assembly-CSharp
         m_MethodName: Connect
         m_Mode: 1
@@ -4617,7 +4617,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 1313.4393, y: -270}
+  m_AnchoredPosition: {x: -155, y: -270}
   m_SizeDelta: {x: 330, y: 540}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1654126030
@@ -4694,7 +4694,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 1313.4393, y: 263}
+  m_AnchoredPosition: {x: -155, y: 263}
   m_SizeDelta: {x: 330, y: 556.3601}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1764521737
@@ -5320,7 +5320,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1849926268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5392,7 +5392,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 1920, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1908657261
 GameObject:
@@ -5579,7 +5579,7 @@ GameObject:
   - component: {fileID: 1931912098}
   - component: {fileID: 1931912097}
   m_Layer: 0
-  m_Name: Database Manager
+  m_Name: Api Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5594,14 +5594,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1931912096}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed4f590d755686f4588e61b3ea71392b, type: 3}
+  m_Script: {fileID: 11500000, guid: 14a79fa28b6bdce4f8d902bc9e6e72f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UsernameInput: {fileID: 1810362800}
-  PasswordInput: {fileID: 1971424008}
-  DatabaseNameInput: {fileID: 1908657263}
-  ErrorText: {fileID: 476757094}
-  ConnectButton: {fileID: 1617358211}
+  UIFill: {fileID: 528611187}
+  LoadingText: {fileID: 1222707901}
+  NodeManager: {fileID: 1849926268}
+  GameRelatedToActivate:
+  - {fileID: 1895440755}
+  DefaultTextureIfFail: {fileID: 2800000, guid: ed5c91c32b9b0af4e851c25c03211f16, type: 3}
 --- !u!4 &1931912098
 Transform:
   m_ObjectHideFlags: 0
