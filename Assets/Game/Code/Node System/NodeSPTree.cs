@@ -60,7 +60,7 @@ public class NodeSPTree : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
             Physics.Raycast(ray, out hit, 100);
-            if (hit.collider != null && hit.collider != gameObject)
+            if (hit.collider != null && hit.collider.gameObject != gameObject)
             {
                 NodeSPTree toLink = hit.collider.gameObject.GetComponent<NodeSPTree>();
                 if (toLink && toLink.TryAddParent(this))
@@ -196,6 +196,7 @@ public class NodeSPTree : MonoBehaviour
             other.ClearLink(link, false);
         }
 
+        //Debug.Log(id + " => " + AllJoinsChildren.Count + " - " + AllJoinsParents.Count);
     }
 
     public void Select()

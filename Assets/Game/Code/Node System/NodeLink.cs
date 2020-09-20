@@ -29,6 +29,7 @@ public class NodeLink : MonoBehaviour
 
             Mesh mesh = new Mesh();
             lineRenderer.BakeMesh(mesh, true);
+
             meshCollider.sharedMesh = mesh;
 
             Vector3 pos = lineRenderer.GetPosition(0);
