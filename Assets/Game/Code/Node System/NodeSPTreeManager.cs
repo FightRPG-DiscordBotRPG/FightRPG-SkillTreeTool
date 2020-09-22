@@ -10,7 +10,7 @@ namespace Assets.Game.Code
 {
     public class NodeSPTreeManager : MonoBehaviour
     {
-        public List<GameObject> Nodes = new List<GameObject>();
+        public Dictionary<int, GameObject> Nodes = new Dictionary<int, GameObject>();
         public GameObject EmptyNodePrefab, NodesGroup, NodeJoinPrefab;
         public GameObject SelectedNode = null, SelectedLink = null;
 
@@ -21,6 +21,7 @@ namespace Assets.Game.Code
         public GameObject LockObject = null;
         public GameObject EditNodeButton = null;
         private string CostBeforeChange = "";
+        private int currentIdToGenerate = 1;
 
         // Use this for initialization
         void Start()
@@ -70,7 +71,7 @@ namespace Assets.Game.Code
             {
                 NodeSPTree node = SelectedNode.GetComponent<NodeSPTree>();
                 node.Remove();
-                Nodes.Remove(SelectedNode);
+                Nodes.Remove(node.data.id);
                 SelectedNode = null;
             }
             else if (SelectedLink)
@@ -86,9 +87,9 @@ namespace Assets.Game.Code
             GameObject Node = Instantiate(EmptyNodePrefab, Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2)), Quaternion.identity, NodesGroup.transform);
             Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
             //Node.transform.localPosition = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
-            Nodes.Add(Node);
 
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
+            AddNode( Node);
             script.OnSelectionEvent += Select;
             script.JoinPrefab = NodeJoinPrefab;
             UpdateIds();
@@ -100,7 +101,7 @@ namespace Assets.Game.Code
             GameObject Node = Instantiate(EmptyNodePrefab, new Vector3(nData.x, nData.y), Quaternion.identity, NodesGroup.transform);
             Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
 
-            Nodes.Add(Node);
+            AddNode(Node);
 
 
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
@@ -109,19 +110,38 @@ namespace Assets.Game.Code
             script.data = nData;
         }
 
-        public void ReloadAllNodesImages()
+        private void AddNode(GameObject node)
         {
-            foreach(GameObject node in Nodes)
+            Nodes[currentIdToGenerate] = node;
+            currentIdToGenerate++;
+        }
+
+        public void ReloadAllNodes()
+        {
+            foreach(KeyValuePair<int, GameObject> kvpNode in Nodes)
             {
-                _ = node.GetComponent<NodeSPTree>().UpdateImage();
+                NodeSPTree script = kvpNode.Value.GetComponent<NodeSPTree>();
+                _ = script.UpdateImage();
+                foreach(int id in script.data.linkedNodes)
+                {
+                    if (Nodes.ContainsKey(id))
+                    {
+                        script.AddJoin(Nodes[id].GetComponent<NodeSPTree>());
+                    }
+
+                }
             }
         }
 
         public void UpdateIds()
         {
-            for (int i = 0; i < Nodes.Count; i++)
+            Dictionary<int, GameObject> updatedDicitonnary = new Dictionary<int, GameObject>();
+            currentIdToGenerate = 1;
+            foreach (KeyValuePair<int, GameObject> nodes in Nodes)
             {
-                Nodes[i].GetComponent<NodeSPTree>().data.id = i + 1;
+                updatedDicitonnary[currentIdToGenerate] = nodes.Value;
+                nodes.Value.GetComponent<NodeSPTree>().data.id = currentIdToGenerate;
+                currentIdToGenerate++;
             }
         }
 

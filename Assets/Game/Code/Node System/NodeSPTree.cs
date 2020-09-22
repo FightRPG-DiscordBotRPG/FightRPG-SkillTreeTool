@@ -64,43 +64,56 @@ public class NodeSPTree : MonoBehaviour
             if (hit.collider != null && hit.collider.gameObject != gameObject)
             {
                 NodeSPTree toLink = hit.collider.gameObject.GetComponent<NodeSPTree>();
-                if (toLink && toLink.TryAddParent(this))
-                {
-                    Children.Add(toLink);
-                    spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]
-                    {
-                        new Vector3(transform.position.x, transform.position.y, 1f),
-                        new Vector3(hit.collider.gameObject.transform.position.x, hit.collider.gameObject.transform.position.y, 1f)
-                    });
-                    toLink.AllJoinsParents.Add(spawnedJoin);
-                    AllJoinsChildren.Add(spawnedJoin);
-
-
-                    // All link to me and the other
-                    NodeLink nodeLinkScript = spawnedJoin.GetComponent<NodeLink>();
-                    nodeLinkScript.OnSelectionEvent += ReactNodeLinkSelected;
-
-
-                    nodeLinkScript.FirstItem = this;
-                    nodeLinkScript.SecondItem = toLink;
-
-                }
-                else
-                {
-                    Destroy(spawnedJoin);
-                }
+                AddJoin(toLink);
             }
             else
             {
                 Destroy(spawnedJoin);
             }
-            spawnedJoin = null;
+
             linking = false;
 
         }
 
         AllJoinsChildren.ForEach((GameObject o) => o.GetComponent<NodeLink>().UpdateMesh());
         AllJoinsParents.ForEach((GameObject o) => o.GetComponent<NodeLink>().UpdateMesh());
+    }
+
+    public void AddJoin(NodeSPTree otherNode)
+    {
+        if(!spawnedJoin)
+        {
+            spawnedJoin = Instantiate(JoinPrefab, new Vector3(transform.position.x, transform.position.y, 1f), Quaternion.identity, transform);
+        }
+
+
+        if (otherNode && otherNode.TryAddParent(this))
+        {
+            Children.Add(otherNode);
+            spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]
+            {
+                        new Vector3(transform.position.x, transform.position.y, 1f),
+                        new Vector3(otherNode.gameObject.transform.position.x, otherNode.gameObject.transform.position.y, 1f)
+                    });
+            otherNode.AllJoinsParents.Add(spawnedJoin);
+            AllJoinsChildren.Add(spawnedJoin);
+
+
+            // All link to me and the other
+            NodeLink nodeLinkScript = spawnedJoin.GetComponent<NodeLink>();
+            nodeLinkScript.OnSelectionEvent += ReactNodeLinkSelected;
+
+
+            nodeLinkScript.FirstItem = this;
+            nodeLinkScript.SecondItem = otherNode;
+
+        }
+        else
+        {
+            Destroy(spawnedJoin);
+        }
+
+        spawnedJoin = null;
     }
 
     internal void Remove()

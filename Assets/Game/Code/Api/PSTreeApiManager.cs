@@ -97,12 +97,12 @@ public class PSTreeApiManager : MonoBehaviour
             NodeManager.LoadNodeFromData(nData);
         }
 
-        LoadingText.text = "Adding Images to Nodes...";
+        LoadingText.text = "Linking and updating nodes data...";
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
         NodeManager.UpdateIds();
-        NodeManager.ReloadAllNodesImages();
+        NodeManager.ReloadAllNodes();
 
     }
 
