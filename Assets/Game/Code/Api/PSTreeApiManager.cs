@@ -22,7 +22,9 @@ public class PSTreeApiManager : MonoBehaviour
 
     static PSTreeApiManager _Instance;
 
-    Dictionary<int, string> PossibleNodesVisuals = new Dictionary<int, string>();
+    Dictionary<int, NodeVisuals> PossibleNodesVisuals = new Dictionary<int, NodeVisuals>();
+    Dictionary<int, Skill> PossibleSkills = new Dictionary<int, Skill>();
+    Dictionary<int, State> PossibleStates = new Dictionary<int, State>();
 
     public static PSTreeApiManager Instance
     {
@@ -49,10 +51,16 @@ public class PSTreeApiManager : MonoBehaviour
     {
         try
         {
-            await LoadNodesVisuals(0.0f, 0.5f);
-            UIFill.fillAmount = 1f / 2f;
+            await LoadNodesVisuals(0.0f, 0.25f);
+            UIFill.fillAmount = 0.25f;
 
-            await LoadAllNodes(0.5f, 1f);
+            await LoadSkills(0.25f, 0.5f);
+            UIFill.fillAmount = 0.5f;
+
+            await LoadStates(0.5f, 0.75f);
+            UIFill.fillAmount = 0.75f;
+
+            await LoadAllNodes(0.75f, 1f);
             UIFill.fillAmount = 1;
             GameObject LoadingScreen = UIFill.gameObject.transform.parent.gameObject;
             LoadingScreen.SetActive(false);
@@ -124,10 +132,54 @@ public class PSTreeApiManager : MonoBehaviour
         JSONNode data = JSON.Parse(request.downloadHandler.text);
         foreach(JSONNode visual in data["visuals"].Values)
         {
-            PossibleNodesVisuals[visual["id"]] = visual["icon"];
+            PossibleNodesVisuals[visual["id"]] = JsonUtility.FromJson<NodeVisuals>(visual.ToString());
         }
 
-        await Task.Delay(1000);
+    }
+
+    async Task LoadSkills(float loadingStart, float loadingMax)
+    {
+        float segment = (loadingMax - loadingStart) / 3;
+        LoadingText.text = "Loading Skills...";
+
+        PossibleSkills.Clear();
+        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/skills");
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        LoadingText.text = "Parsing Data...";
+
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        JSONNode data = JSON.Parse(request.downloadHandler.text);
+        foreach (JSONNode skill in data["skills"].Values)
+        {
+            PossibleSkills[skill["id"]] = JsonUtility.FromJson<Skill>(skill.ToString());
+        }
+
+    }
+
+    async Task LoadStates(float loadingStart, float loadingMax)
+    {
+        float segment = (loadingMax - loadingStart) / 3;
+        LoadingText.text = "Loading States...";
+
+        PossibleSkills.Clear();
+        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/states");
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        LoadingText.text = "Parsing Data...";
+
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        JSONNode data = JSON.Parse(request.downloadHandler.text);
+        foreach (JSONNode state in data["states"].Values)
+        {
+            PossibleStates[state["id"]] = JsonUtility.FromJson<State>(state.ToString());
+        }
 
     }
 
@@ -184,10 +236,10 @@ public class PSTreeApiManager : MonoBehaviour
     public async Task<Texture2D> GetTextureNode(int idVisual)
     {
         Texture2D tex;
-        string value = "";
+        NodeVisuals value;
         if(PossibleNodesVisuals.TryGetValue(idVisual, out value))
         {
-            tex =(Texture2D) await GetTextureAsync(value);
+            tex =(Texture2D) await GetTextureAsync(value.icon);
         } else
         {
             tex = (Texture2D) DefaultTextureIfFail;
