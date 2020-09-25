@@ -5,21 +5,28 @@ using UnityEditor;
 using TMPro;
 using UnityEngine.UI;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Assets.Game.Code
 {
     public class NodeSPTreeManager : MonoBehaviour
     {
+        [Header("Nodes Related")]
         public Dictionary<int, GameObject> Nodes = new Dictionary<int, GameObject>();
         public GameObject EmptyNodePrefab, NodesGroup, NodeJoinPrefab;
         public GameObject SelectedNode = null, SelectedLink = null;
 
+
         /**
          * UI Related
          */
+        [Header("UI Related")]
+        public GameObject EditNodeUI;
         public GameObject TextCostObject = null;
         public GameObject LockObject = null;
-        public GameObject EditNodeButton = null;
+        public GameObject EditNodeButton = null, AddButton = null, CloseEditButton = null;
+
+
         private string CostBeforeChange = "";
         private int currentIdToGenerate = 1;
 
@@ -31,6 +38,15 @@ namespace Assets.Game.Code
 
         // Update is called once per frame
         void LateUpdate()
+        {
+            if(!EditNodeUI.activeInHierarchy)
+            {
+                DoShortcutsOnNodes();
+            }
+
+        }
+
+        private void DoShortcutsOnNodes()
         {
             if (Input.GetKeyDown(KeyCode.Delete))
             {
@@ -45,7 +61,8 @@ namespace Assets.Game.Code
             else if (Input.GetKeyDown(KeyCode.N))
             {
                 AddNewNode();
-            } else if (Input.GetKeyDown(KeyCode.Escape) && SelectedNode)
+            }
+            else if (Input.GetKeyDown(KeyCode.Escape) && SelectedNode)
             {
                 SelectedNode.GetComponent<NodeSPTree>().UnSelect();
                 SelectedNode = null;
@@ -56,12 +73,10 @@ namespace Assets.Game.Code
                 Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
                 Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
-                fieldCost.readOnly = false;;
+                fieldCost.readOnly = false;
                 fieldIsLocked.interactable = false;
                 editNodeButton.interactable = true;
             }
-
-
 
         }
 
@@ -89,12 +104,106 @@ namespace Assets.Game.Code
             //Node.transform.localPosition = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
 
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
-            AddNode( Node);
+            AddNode(Node);
             script.OnSelectionEvent += Select;
             script.JoinPrefab = NodeJoinPrefab;
             UpdateIds();
             Select(Node);
         }
+
+        public void EditNode()
+        {
+            if(SelectedNode == null)
+            {
+                return;
+            }
+
+            EditNodeUI.SetActive(true);
+            EditNodeButton.SetActive(false);
+            AddButton.SetActive(false);
+            UpdateEditNodeUI();
+        }
+
+        public void CloseEditNode()
+        {
+            EditNodeUI.SetActive(false);
+            EditNodeButton.SetActive(true);
+            AddButton.SetActive(true);
+        }
+
+        private void UpdateEditNodeUI()
+        {
+            if(SelectedNode == null)
+            {
+                return;
+            }
+
+            NodeSPTree script = SelectedNode.GetComponent<NodeSPTree>();
+            UpdateEditNodeStatsUI(script);
+            UpdateEditNodeSecondaryStatsUI(script);
+        }
+
+        private void UpdateEditNodeStatsUI(NodeSPTree node)
+        {
+            GameObject statsPanel = EditNodeUI.transform.GetChild(0).GetChild(1).gameObject;
+            for (int i = 0; i < statsPanel.transform.childCount; i++)
+            {
+                var child = statsPanel.transform.GetChild(i);
+                child.GetChild(0).GetComponent<TMP_InputField>().text = node.data.stats[child.name].ToString();
+            }
+        }
+
+        private void UpdateEditNodeSecondaryStatsUI(NodeSPTree node)
+        {
+            GameObject secondaryStatsPanel = EditNodeUI.transform.GetChild(1).GetChild(1).gameObject;
+            GameObject resistsPanel = EditNodeUI.transform.GetChild(1).GetChild(3).gameObject;
+            for (int i = 0; i < secondaryStatsPanel.transform.childCount; i++)
+            {
+                var child = secondaryStatsPanel.transform.GetChild(i);
+                child.GetChild(0).GetComponent<TMP_InputField>().text = node.data.secondaryStats[child.name].ToString();
+            }
+
+            for (int i = 0; i < resistsPanel.transform.childCount; i++)
+            {
+                var child = resistsPanel.transform.GetChild(i);
+                child.GetChild(0).GetComponent<TMP_InputField>().text = node.data.secondaryStats[child.name].ToString();
+            }
+        }
+
+        public void UpdateStatValue(TMP_InputField sender)
+        {
+            if(SelectedNode != null)
+            {
+                NodeSPTree node = SelectedNode.GetComponent<NodeSPTree>();
+                node.data.stats[sender.transform.parent.name] = int.Parse(sender.text);
+            }
+        }
+        public void UpdateSecondaryStatValue(TMP_InputField sender)
+        {
+            if (SelectedNode != null)
+            {
+                NodeSPTree node = SelectedNode.GetComponent<NodeSPTree>();
+                node.data.secondaryStats[sender.transform.parent.name] = int.Parse(sender.text);
+            }
+        }
+
+        //private int EnsureInteger(TMP_InputField inputField)
+        //{
+        //    int result = 0;            
+        //    if(!int.TryParse(inputField.text, out result))
+        //    {
+        //        if(inputField.text.Length >= 2)
+        //        {
+        //            inputField.text.Substring(0, inputField.text.Length - 2 | 0);
+        //            int.TryParse(inputField.text, out result);
+        //        } else
+        //        {
+        //            inputField.text = "0";
+        //        }
+        //    }
+
+        //    return result;
+        //}
 
         public void LoadNodeFromData(NodeData nData)
         {
@@ -118,11 +227,11 @@ namespace Assets.Game.Code
 
         public void ReloadAllNodes()
         {
-            foreach(KeyValuePair<int, GameObject> kvpNode in Nodes)
+            foreach (KeyValuePair<int, GameObject> kvpNode in Nodes)
             {
                 NodeSPTree script = kvpNode.Value.GetComponent<NodeSPTree>();
                 _ = script.UpdateImage();
-                foreach(int id in script.data.linkedNodes)
+                foreach (int id in script.data.linkedNodes)
                 {
                     if (Nodes.ContainsKey(id))
                     {

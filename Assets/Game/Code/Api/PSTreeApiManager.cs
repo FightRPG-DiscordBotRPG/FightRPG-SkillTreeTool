@@ -16,6 +16,7 @@ public class PSTreeApiManager : MonoBehaviour
     public Image UIFill;
     public TMP_Text LoadingText;
     public NodeSPTreeManager NodeManager;
+    public GameObject RetryButton;
 
     public GameObject[] GameRelatedToActivate;
     public Texture DefaultTextureIfFail;
@@ -47,8 +48,10 @@ public class PSTreeApiManager : MonoBehaviour
         
     }
 
-    async void Load()
+    public async void Load()
     {
+        RetryButton.SetActive(false);
+        UIFill.fillAmount = 0f;
         try
         {
             await LoadNodesVisuals(0.0f, 0.25f);
@@ -75,8 +78,8 @@ public class PSTreeApiManager : MonoBehaviour
             UIFill.fillAmount = 1;
 
             // Display button restart
+            RetryButton.SetActive(true);
         }
-
     }
 
     async Task LoadAllNodes(float loadingStart, float loadingMax)

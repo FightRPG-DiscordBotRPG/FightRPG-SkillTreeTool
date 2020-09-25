@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
+using System.Reflection;
 
 [Serializable]
-public class Stats
+public class Stats : SBrackets
 {
     public int strength = 0;
     public int intellect = 0;
@@ -15,4 +16,5 @@ public class Stats
     public int will = 0;
     public int perception = 0;
     public int luck = 0;
+
 }

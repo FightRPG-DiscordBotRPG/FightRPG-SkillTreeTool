@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 
 [Serializable]
-public class SecondaryStats
+public class SecondaryStats : SBrackets
 {
         public int hitRate = 0;
         public int evadeRate = 0;
@@ -24,5 +24,4 @@ public class SecondaryStats
         public int airResist = 0;
         public int darkResist = 0;
         public int lightResist = 0;
-
 }
