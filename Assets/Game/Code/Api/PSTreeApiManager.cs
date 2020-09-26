@@ -1,4 +1,5 @@
 ﻿using Assets.Game.Code;
+using DevionGames.UIWidgets;
 using SimpleJSON;
 using System;
 using System.Collections;
@@ -20,12 +21,17 @@ public class PSTreeApiManager : MonoBehaviour
 
     public GameObject[] GameRelatedToActivate;
     public Texture DefaultTextureIfFail;
+    public DialogBox confirmReloadDialogBox;
+
 
     static PSTreeApiManager _Instance;
 
-    Dictionary<int, NodeVisuals> PossibleNodesVisuals = new Dictionary<int, NodeVisuals>();
-    Dictionary<int, Skill> PossibleSkills = new Dictionary<int, Skill>();
-    Dictionary<int, State> PossibleStates = new Dictionary<int, State>();
+    public readonly Dictionary<int, NodeVisuals> PossibleNodesVisuals = new Dictionary<int, NodeVisuals>();
+    public readonly Dictionary<int, Skill> PossibleSkills = new Dictionary<int, Skill>();
+    public readonly Dictionary<int, State> PossibleStates = new Dictionary<int, State>();
+
+    public readonly List<Skill> PossibleSkillsAsList = new List<Skill>();
+
 
     public static PSTreeApiManager Instance
     {
@@ -39,18 +45,43 @@ public class PSTreeApiManager : MonoBehaviour
     void Start()
     {
         _Instance = this;
-        Load();
+        _ = Load();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
-    public async void Load()
+    public void Reload()
     {
+        confirmReloadDialogBox.Show("Reloading", "Are you sure to reload? (Unsaved work will be removed)", null, OnDialogResult, new string[] { "Reload", "Cancel" });
+    }
+
+    private async void OnDialogResult(int index)
+    {
+        if(index == 0)
+        {
+            await Load();
+        }
+    }
+
+    private void SetActiveAllRelatedGameObjects(bool value)
+    {
+        foreach (GameObject go in GameRelatedToActivate)
+        {
+            go.SetActive(value);
+        }
+    }
+
+    public async Task Load()
+    {
+        GameObject LoadingScreen = UIFill.gameObject.transform.parent.gameObject;
+        LoadingScreen.SetActive(true);
+        SetActiveAllRelatedGameObjects(false);
         RetryButton.SetActive(false);
+        NodeManager.Clear();
         UIFill.fillAmount = 0f;
         try
         {
@@ -65,14 +96,13 @@ public class PSTreeApiManager : MonoBehaviour
 
             await LoadAllNodes(0.75f, 1f);
             UIFill.fillAmount = 1;
-            GameObject LoadingScreen = UIFill.gameObject.transform.parent.gameObject;
+            
             LoadingScreen.SetActive(false);
 
             // Activate every needed components
-            foreach(GameObject go in GameRelatedToActivate) {
-                go.SetActive(true);
-            }
-        } catch (Exception ex)
+            SetActiveAllRelatedGameObjects(true);
+        }
+        catch (Exception ex)
         {
             LoadingText.text = "Error: " + ex.Message;
             UIFill.fillAmount = 1;
@@ -105,6 +135,11 @@ public class PSTreeApiManager : MonoBehaviour
             NodeData nData = JsonUtility.FromJson<NodeData>(json.ToString());
             LoadingText.text = "Loading Node: " + nData.visuals.name;
 
+            foreach (string skillId in json["skillsUnlockedIds"].AsStringArray)
+            {
+                nData.skillsUnlocked.Add(PossibleSkills[int.Parse(skillId)]);
+            }
+
             NodeManager.LoadNodeFromData(nData);
         }
 
@@ -133,7 +168,7 @@ public class PSTreeApiManager : MonoBehaviour
         UIFill.fillAmount = loadingStart;
 
         JSONNode data = JSON.Parse(request.downloadHandler.text);
-        foreach(JSONNode visual in data["visuals"].Values)
+        foreach (JSONNode visual in data["visuals"].Values)
         {
             PossibleNodesVisuals[visual["id"]] = JsonUtility.FromJson<NodeVisuals>(visual.ToString());
         }
@@ -146,6 +181,7 @@ public class PSTreeApiManager : MonoBehaviour
         LoadingText.text = "Loading Skills...";
 
         PossibleSkills.Clear();
+        PossibleSkillsAsList.Clear();
         UnityWebRequest request = await GetRequestAsync("http://localhost:25012/skills");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
@@ -159,8 +195,8 @@ public class PSTreeApiManager : MonoBehaviour
         foreach (JSONNode skill in data["skills"].Values)
         {
             PossibleSkills[skill["id"]] = JsonUtility.FromJson<Skill>(skill.ToString());
+            PossibleSkillsAsList.Add(PossibleSkills[skill["id"]]);
         }
-
     }
 
     async Task LoadStates(float loadingStart, float loadingMax)
@@ -168,7 +204,7 @@ public class PSTreeApiManager : MonoBehaviour
         float segment = (loadingMax - loadingStart) / 3;
         LoadingText.text = "Loading States...";
 
-        PossibleSkills.Clear();
+        PossibleStates.Clear();
         UnityWebRequest request = await GetRequestAsync("http://localhost:25012/states");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
@@ -186,14 +222,15 @@ public class PSTreeApiManager : MonoBehaviour
 
     }
 
-    public async Task<UnityWebRequest> GetRequestAsync(string url, bool throwException=true)
+    public async Task<UnityWebRequest> GetRequestAsync(string url, bool throwException = true)
     {
         UnityWebRequest request = UnityWebRequest.Get(url);
         await request.SendWebRequest();
-        if(request.isNetworkError && throwException)
+        if (request.isNetworkError && throwException)
         {
             throw new Exception(request.error);
-        } else
+        }
+        else
         {
             return request;
         }
@@ -201,7 +238,7 @@ public class PSTreeApiManager : MonoBehaviour
 
     public async Task<Texture> GetTextureAsync(string url)
     {
-        if(url.StartsWith("data:image") || url.StartsWith("base64,"))
+        if (url.StartsWith("data:image") || url.StartsWith("base64,"))
         {
             try
             {
@@ -210,14 +247,16 @@ public class PSTreeApiManager : MonoBehaviour
                 tex.LoadImage(imageBytes);
 
                 return tex;
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 Debug.LogError(ex);
                 return DefaultTextureIfFail;
             }
 
 
-        } else
+        }
+        else
         {
             UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
             await request.SendWebRequest();
@@ -225,13 +264,14 @@ public class PSTreeApiManager : MonoBehaviour
             if (request.isNetworkError)
             {
                 return DefaultTextureIfFail;
-            } else
+            }
+            else
             {
                 return ((DownloadHandlerTexture)request.downloadHandler).texture;
             }
         }
 
-        
+
 
 
     }
@@ -240,12 +280,13 @@ public class PSTreeApiManager : MonoBehaviour
     {
         Texture2D tex;
         NodeVisuals value;
-        if(PossibleNodesVisuals.TryGetValue(idVisual, out value))
+        if (PossibleNodesVisuals.TryGetValue(idVisual, out value))
         {
-            tex =(Texture2D) await GetTextureAsync(value.icon);
-        } else
+            tex = (Texture2D)await GetTextureAsync(value.icon);
+        }
+        else
         {
-            tex = (Texture2D) DefaultTextureIfFail;
+            tex = (Texture2D)DefaultTextureIfFail;
         }
 
         RenderTexture rt = new RenderTexture(64, 64, 24);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Game.Code;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ public class NodeSPTree : MonoBehaviour
     public NodeData data = new NodeData();
 
     private SpriteRenderer sprite;
+    public NodeSPTreeManager Manager;
 
 
     // Start is called before the first frame update
@@ -37,6 +39,11 @@ public class NodeSPTree : MonoBehaviour
 
     void OnMouseDown()
     {
+        if(Manager.EditNodeUI.activeInHierarchy)
+        {
+            return;
+        }
+
         OnSelectionEvent?.Invoke(gameObject);
 
 
@@ -55,6 +62,11 @@ public class NodeSPTree : MonoBehaviour
 
     void OnMouseUp()
     {
+        if (Manager.EditNodeUI.activeInHierarchy)
+        {
+            return;
+        }
+
         dragging = false;
         if (spawnedJoin)
         {
@@ -102,10 +114,9 @@ public class NodeSPTree : MonoBehaviour
             // All link to me and the other
             NodeLink nodeLinkScript = spawnedJoin.GetComponent<NodeLink>();
             nodeLinkScript.OnSelectionEvent += ReactNodeLinkSelected;
-
-
             nodeLinkScript.FirstItem = this;
             nodeLinkScript.SecondItem = otherNode;
+            nodeLinkScript.Manager = Manager;
 
         }
         else

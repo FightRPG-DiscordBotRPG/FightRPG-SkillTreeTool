@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using Assets.Game.Code;
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,8 @@ public class NodeLink : MonoBehaviour
     public NodeSPTree FirstItem, SecondItem;
     public delegate void OnSelectionEventHandler(GameObject sender);
     public event OnSelectionEventHandler OnSelectionEvent;
+    public NodeSPTreeManager Manager;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -44,13 +47,16 @@ public class NodeLink : MonoBehaviour
 
     void OnMouseDown()
     {
-        Debug.Log("On Mouse Down Node Link");
-
-        RaycastHit hit;
-        Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100);
-        if(hit.collider && hit.collider.gameObject == gameObject)
+        if (!Manager.EditNodeUI.activeInHierarchy)
         {
-            OnSelectionEvent?.Invoke(gameObject);
+            Debug.Log("On Mouse Down Node Link");
+
+            RaycastHit hit;
+            Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100);
+            if (hit.collider && hit.collider.gameObject == gameObject)
+            {
+                OnSelectionEvent?.Invoke(gameObject);
+            }
         }
 
     }
