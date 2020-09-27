@@ -82,6 +82,12 @@ public class RecyclingListView : MonoBehaviour
     protected float previousBuildHeight = 0;
     protected const int rowsAboveBelow = 1;
 
+    public RecyclingListViewItem[] Items { get
+        {
+            return childItems;
+        }
+    }
+
     /// <summary>
     /// Trigger the refreshing of the list content (e.g. if you've changed some values).
     /// Use this if the number of rows hasn't changed but you want to update the contents

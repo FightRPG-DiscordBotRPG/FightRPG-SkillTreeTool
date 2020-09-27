@@ -31,7 +31,7 @@ public class PSTreeApiManager : MonoBehaviour
     public readonly Dictionary<int, State> PossibleStates = new Dictionary<int, State>();
 
     public readonly List<Skill> PossibleSkillsAsList = new List<Skill>();
-
+    public readonly List<NodeVisuals> PossibleNodesVisualsAsList = new List<NodeVisuals>();
 
     public static PSTreeApiManager Instance
     {
@@ -73,6 +73,11 @@ public class PSTreeApiManager : MonoBehaviour
         {
             go.SetActive(value);
         }
+    }
+
+    public void LoadFromButtonSync()
+    {
+        _ = Load();
     }
 
     public async Task Load()
@@ -158,6 +163,7 @@ public class PSTreeApiManager : MonoBehaviour
         LoadingText.text = "Loading Nodes Visuals...";
 
         PossibleNodesVisuals.Clear();
+        PossibleNodesVisualsAsList.Clear();
         UnityWebRequest request = await GetRequestAsync("http://localhost:25012/nodes/visuals");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
@@ -171,6 +177,7 @@ public class PSTreeApiManager : MonoBehaviour
         foreach (JSONNode visual in data["visuals"].Values)
         {
             PossibleNodesVisuals[visual["id"]] = JsonUtility.FromJson<NodeVisuals>(visual.ToString());
+            PossibleNodesVisualsAsList.Add(PossibleNodesVisuals[visual["id"]]);
         }
 
     }
@@ -238,7 +245,7 @@ public class PSTreeApiManager : MonoBehaviour
 
     public async Task<Texture> GetTextureAsync(string url)
     {
-        if (url.StartsWith("data:image") || url.StartsWith("base64,"))
+        if (url.StartsWith("data:image") || url.StartsWith("base64,") || !url.StartsWith("http"))
         {
             try
             {
@@ -289,6 +296,30 @@ public class PSTreeApiManager : MonoBehaviour
             tex = (Texture2D)DefaultTextureIfFail;
         }
 
+        return PrepareTextureForNode(tex);
+    }
+
+    public async Task<Texture2D> GetTextureNode(string url)
+    {
+        Texture2D tex;
+        try {
+            tex = (Texture2D)await GetTextureAsync(url);
+        }
+        catch
+        {
+            tex = (Texture2D)DefaultTextureIfFail;
+        }
+
+        return PrepareTextureForNode(tex);
+    }
+
+    public Sprite GetSpriteForNode(Texture2D tx)
+    {
+        return Sprite.Create(tx, new Rect(0f, 0f, tx.width, tx.height), new Vector2(0.5f, 0.5f), 100f);
+    }
+
+    private Texture2D PrepareTextureForNode(Texture2D tex)
+    {
         RenderTexture rt = new RenderTexture(64, 64, 24);
         RenderTexture.active = rt;
         Graphics.Blit(tex, rt);

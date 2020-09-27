@@ -15,12 +15,9 @@ namespace Assets.Game.Code
         [Header("Nodes Related")]
         public Dictionary<int, GameObject> Nodes = new Dictionary<int, GameObject>();
         public GameObject EmptyNodePrefab, NodesGroup, NodeJoinPrefab;
-        public RecyclingListView SkillsRecyclingListView = null;
-        public RecyclingListView SkillsToAddRecyclingListView = null;
 
         [HideInInspector]
         public GameObject SelectedNode = null, SelectedLink = null;
-
 
         /**
          * UI Related
@@ -35,11 +32,22 @@ namespace Assets.Game.Code
         public GameObject EditNodeButton = null, CloseEditButton = null;
         public GameObject EditNodeUIAddSkillMenu = null;
         public TMP_InputField SearchAddSkill = null;
+        public RecyclingListView SkillsRecyclingListView = null;
+        public RecyclingListView SkillsToAddRecyclingListView = null;
 
         private readonly Dictionary<int, bool> SelectedSkills = new Dictionary<int, bool>();
         private readonly Dictionary<int, bool> SelectedSkillsToAdd = new Dictionary<int, bool>();
 
         private List<Skill> PossibleSkillsToAddFiltered = new List<Skill>();
+
+        [Header("UI Edit Node - Visuals")]
+        public GameObject EditVisualsUI;
+        public TMP_InputField EditVisualsUISearch, EditVisualsUILinkImage;
+        public RecyclingListView VisualsToAddRecyclingListView;
+
+        private readonly Dictionary<int, bool> SelectedVisualsToAdd = new Dictionary<int, bool>();
+        private List<NodeVisuals> PossibleNodeVisualsToAddFiltered = new List<NodeVisuals>();
+
 
 
         private string CostBeforeChange = "";
@@ -174,12 +182,16 @@ namespace Assets.Game.Code
 
             NodeSPTree script = SelectedNode.GetComponent<NodeSPTree>();
             PossibleSkillsToAddFiltered = PSTreeApiManager.Instance.PossibleSkillsAsList;
+            PossibleNodeVisualsToAddFiltered = PSTreeApiManager.Instance.PossibleNodesVisualsAsList;
+
+            EditVisualsUILinkImage.text = "";
+
             SearchAddSkill.text = "";
+            EditVisualsUISearch.text = "";
 
             UpdateEditNodeStatsUI(script);
             UpdateEditNodeSecondaryStatsUI(script);
             UpdateEditNodeSkillsUI(script);
-
         }
 
         private void UpdateEditNodeSkillsUI(NodeSPTree script)
@@ -189,9 +201,6 @@ namespace Assets.Game.Code
             SkillsRecyclingListView.Clear();
             SkillsRecyclingListView.ItemCallback = PopulateSkills;
             SkillsRecyclingListView.RowCount = script.data.skillsUnlocked.Count;
-
-            // Do the same for add skills
-            UpdateSkillsToAdd();
         }
 
         public void UpdateSearchSkillsToAdd()
@@ -200,12 +209,26 @@ namespace Assets.Game.Code
             UpdateSkillsToAdd();
         }
 
+        public void UpdateSearchVisualsToAdd()
+        {
+            PossibleNodeVisualsToAddFiltered = PSTreeApiManager.Instance.PossibleNodesVisualsAsList.Where(x => x.name.ToLower().Contains(EditVisualsUISearch.text.ToLower())).ToList();
+            UpdateVisualsToAdd();
+        }
+
         public void UpdateSkillsToAdd()
         {
             SelectedSkillsToAdd.Clear();
             SkillsToAddRecyclingListView.Clear();
             SkillsToAddRecyclingListView.ItemCallback = PopulateSkillsToAdd;
             SkillsToAddRecyclingListView.RowCount = PossibleSkillsToAddFiltered.Count;
+        }
+
+        public void UpdateVisualsToAdd()
+        {
+            SelectedVisualsToAdd.Clear();
+            VisualsToAddRecyclingListView.Clear();
+            VisualsToAddRecyclingListView.ItemCallback = PopulateVisualsToAdd;
+            VisualsToAddRecyclingListView.RowCount = PossibleNodeVisualsToAddFiltered.Count;
         }
 
         private void PopulateSkills(RecyclingListViewItem item, int rowIndex)
@@ -237,7 +260,7 @@ namespace Assets.Game.Code
         private void PopulateSkillsToAdd(RecyclingListViewItem item, int rowIndex)
         {
             var child = item as ListViewItemSimpleText;
-            // Todo if skills id don't follow it's fucked up
+
             child.SetText(PossibleSkillsToAddFiltered[rowIndex].name);
             child.id = PossibleSkillsToAddFiltered[rowIndex].id;
 
@@ -261,7 +284,43 @@ namespace Assets.Game.Code
             }
         }
 
+        private void PopulateVisualsToAdd(RecyclingListViewItem item, int rowIndex)
+        {
+            var child = item as ListViewItemSimpleTextImage;
 
+            child.SetText(PossibleNodeVisualsToAddFiltered[rowIndex].name == "" ? "Unknwon" : PossibleNodeVisualsToAddFiltered[rowIndex].name);
+            child.SetImage(PossibleNodeVisualsToAddFiltered[rowIndex].icon);
+            child.id = PossibleNodeVisualsToAddFiltered[rowIndex].id;
+
+            child.onSelectCallback = (int id) =>
+            {
+                // We only want one to be selected
+                SelectedVisualsToAdd.Clear();
+                for (int i = 0; i < VisualsToAddRecyclingListView.Items.Length; i++)
+                {
+                    var otherItem = VisualsToAddRecyclingListView.Items[i] as ListViewItemSimpleTextImage;
+                    if(otherItem != child)
+                    {
+                        otherItem.UnSelect();
+                    }
+                }
+                SelectedVisualsToAdd[id] = true;
+            };
+
+            child.onUnSelectCallback = (int id) =>
+            {
+                SelectedVisualsToAdd[id] = false;
+            };
+
+            if (SelectedVisualsToAdd.ContainsKey(child.id) && SelectedVisualsToAdd[child.id] == true)
+            {
+                child.Select();
+            }
+            else
+            {
+                child.UnSelect();
+            }
+        }
         private void UpdateEditNodeStatsUI(NodeSPTree node)
         {
             GameObject statsPanel = EditNodeUI.transform.GetChild(0).GetChild(1).gameObject;
@@ -347,11 +406,23 @@ namespace Assets.Game.Code
         public void OpenAddSkillAddingMenu()
         {
             EditNodeUIAddSkillMenu.SetActive(true);
+            UpdateSkillsToAdd();
         }
 
         public void CloseAddSkillAddingMenu()
         {
             EditNodeUIAddSkillMenu.SetActive(false);
+        }
+
+        public void OpenVisualsAddingMenu()
+        {
+            EditVisualsUI.SetActive(true);
+            UpdateVisualsToAdd();
+        }
+
+        public void CloseVisualsAddingMenu()
+        {
+            EditVisualsUI.SetActive(false);
         }
 
         public void AddSelectedSkills()
@@ -381,6 +452,20 @@ namespace Assets.Game.Code
             }
 
             UpdateEditNodeSkillsUI(node);
+        }
+
+        public void SetSelectedVisual()
+        {
+            NodeSPTree node = GetSelectedNodeScript();
+            foreach (KeyValuePair<int, bool> kvp in SelectedVisualsToAdd)
+            {
+                NodeVisuals visual = PSTreeApiManager.Instance.PossibleNodesVisuals[kvp.Key];
+                node.data.visuals = visual;
+                break;
+            }
+
+            UpdateVisualsToAdd();
+            ReloadAllNodes();
         }
 
         private NodeSPTree GetSelectedNodeScript()
@@ -462,16 +547,8 @@ namespace Assets.Game.Code
 
         public void ChangeSelectedCost()
         {
-            try
-            {
-                string text = TextCostObject.GetComponent<TMP_InputField>().text;
-                SelectedNode.GetComponent<NodeSPTree>().data.cost = int.Parse(text);
-                CostBeforeChange = text;
-            }
-            catch
-            {
-                TextCostObject.GetComponent<TMP_InputField>().text = CostBeforeChange;
-            }
+            string text = TextCostObject.GetComponent<TMP_InputField>().text;
+            SelectedNode.GetComponent<NodeSPTree>().data.cost = int.Parse(text);
         }
 
         public void ChangeLockState()

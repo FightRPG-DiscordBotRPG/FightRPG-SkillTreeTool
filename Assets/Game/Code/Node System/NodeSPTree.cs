@@ -151,10 +151,7 @@ public class NodeSPTree : MonoBehaviour
             sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
         }
 
-
-
-        Sprite test = Sprite.Create(tx, new Rect(0f, 0f, tx.width, tx.height), new Vector2(0.5f, 0.5f), 100f);
-        sprite.sprite = test;
+        sprite.sprite = PSTreeApiManager.Instance.GetSpriteForNode(tx);
     }
 
     bool TryAddParent(NodeSPTree newParent)

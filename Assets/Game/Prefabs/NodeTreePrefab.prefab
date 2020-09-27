@@ -274,13 +274,15 @@ MonoBehaviour:
       airResist: 0
       darkResist: 0
       lightResist: 0
-    skillsUnlockedIds: 
-    statesProtectedFromIds: 
-    statesAddedIds: 
+    skillsUnlocked: []
+    statesProtectedFrom: []
+    statesAdded: []
+    linkedNodes: 
     x: 0
     y: 0
     cost: 0
     initial: 0
+  Manager: {fileID: 0}
 --- !u!135 &5395008694927811508
 SphereCollider:
   m_ObjectHideFlags: 0
