@@ -173,27 +173,7 @@ public class NodeSPTree : MonoBehaviour
             Vector3 rayPoint = ray.GetPoint(distance);
             transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z);
 
-            // Parent links
-            foreach (GameObject join in AllJoinsParents)
-            {
-                LineRenderer lr = join.GetComponent<LineRenderer>();
-                lr.SetPositions(new[]
-                    {
-                        lr.GetPosition(0),
-                        new Vector3(transform.position.x, transform.position.y, 1f)
-                    });
-            }
-
-            // Children links
-            foreach (GameObject join in AllJoinsChildren)
-            {
-                LineRenderer lr = join.GetComponent<LineRenderer>();
-                lr.SetPositions(new[]
-                    {
-                        new Vector3(transform.position.x, transform.position.y, 1f),
-                        lr.GetPosition(1),
-                    });
-            }
+            UpdateLinksPositions();
         }
 
         if (linking)
@@ -205,6 +185,33 @@ public class NodeSPTree : MonoBehaviour
                 new Vector3(transform.position.x, transform.position.y, 1f),
                 pointInWorld
             });
+        }
+
+
+    }
+
+    public void UpdateLinksPositions()
+    {
+        // Parent links
+        foreach (GameObject join in AllJoinsParents)
+        {
+            LineRenderer lr = join.GetComponent<LineRenderer>();
+            lr.SetPositions(new[]
+                {
+                        lr.GetPosition(0),
+                        new Vector3(transform.position.x, transform.position.y, 1f)
+                    });
+        }
+
+        // Children links
+        foreach (GameObject join in AllJoinsChildren)
+        {
+            LineRenderer lr = join.GetComponent<LineRenderer>();
+            lr.SetPositions(new[]
+                {
+                        new Vector3(transform.position.x, transform.position.y, 1f),
+                        lr.GetPosition(1),
+                    });
         }
     }
 

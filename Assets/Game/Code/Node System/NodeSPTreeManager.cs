@@ -23,9 +23,9 @@ namespace Assets.Game.Code
          * UI Related
          */
         [Header("UI Nodes")]
-        public GameObject TextCostObject = null;
         public GameObject LockObject = null;
         public GameObject AddButton = null;
+        public TMP_InputField xPosUI, yPosUI, CostUI;
 
         [Header("UI Edit Node")]
         public GameObject EditNodeUI;
@@ -48,9 +48,6 @@ namespace Assets.Game.Code
         private readonly Dictionary<int, bool> SelectedVisualsToAdd = new Dictionary<int, bool>();
         private List<NodeVisuals> PossibleNodeVisualsToAddFiltered = new List<NodeVisuals>();
 
-
-
-        private string CostBeforeChange = "";
         private int currentIdToGenerate = 1;
 
         // Use this for initialization
@@ -67,6 +64,35 @@ namespace Assets.Game.Code
                 DoShortcutsOnNodes();
             }
 
+            UpdateSelectedNodePositionInUI();
+
+        }
+
+        private void UpdateSelectedNodePositionInUI()
+        {
+            if (SelectedNode)
+            {
+                xPosUI.text = SelectedNode.transform.position.x.ToString();
+                yPosUI.text = SelectedNode.transform.position.y.ToString();
+            }
+        }
+
+        public void UpdateFromUIPositionX()
+        {
+            if (SelectedNode && GetSelectedNodeScript().IsLocked)
+            {
+                SelectedNode.transform.position = new Vector3(float.Parse(xPosUI.text), SelectedNode.transform.position.y, SelectedNode.transform.position.z);
+                GetSelectedNodeScript().UpdateLinksPositions();
+            }
+        }
+
+        public void UpdateFromUIPositionY()
+        {
+            if (SelectedNode && GetSelectedNodeScript().IsLocked)
+            {
+                SelectedNode.transform.position = new Vector3(SelectedNode.transform.position.x, float.Parse(yPosUI.text), SelectedNode.transform.position.z);
+                GetSelectedNodeScript().UpdateLinksPositions();
+            }
         }
 
         public void Clear()
@@ -83,7 +109,7 @@ namespace Assets.Game.Code
 
         private void DoShortcutsOnNodes()
         {
-            if (Input.GetKeyDown(KeyCode.Delete))
+            if (Input.GetKeyDown(KeyCode.Delete) && !IsUiFocused())
             {
                 TryToRemoveSelection();
             }
@@ -102,17 +128,21 @@ namespace Assets.Game.Code
                 SelectedNode.GetComponent<NodeSPTree>().UnSelect();
                 SelectedNode = null;
 
-
-
-                TMP_InputField fieldCost = TextCostObject.GetComponent<TMP_InputField>();
                 Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
                 Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
-                fieldCost.readOnly = false;
+                CostUI.readOnly = false;
                 fieldIsLocked.interactable = false;
                 editNodeButton.interactable = true;
+                xPosUI.readOnly = false;
+                yPosUI.readOnly = false;
             }
 
+        }
+
+        private bool IsUiFocused()
+        {
+            return xPosUI.isFocused || yPosUI.isFocused || CostUI.isFocused;
         }
 
         private void TryToRemoveSelection()
@@ -299,7 +329,7 @@ namespace Assets.Game.Code
                 for (int i = 0; i < VisualsToAddRecyclingListView.Items.Length; i++)
                 {
                     var otherItem = VisualsToAddRecyclingListView.Items[i] as ListViewItemSimpleTextImage;
-                    if(otherItem != child)
+                    if (otherItem != child)
                     {
                         otherItem.UnSelect();
                     }
@@ -497,7 +527,6 @@ namespace Assets.Game.Code
             NodeSPTree scriptNode = toSelectGameObject.GetComponent<NodeSPTree>();
             NodeLink scriptLink = toSelectGameObject.GetComponent<NodeLink>();
 
-            TMP_InputField fieldCost = TextCostObject.GetComponent<TMP_InputField>();
             Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
             Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
@@ -520,8 +549,10 @@ namespace Assets.Game.Code
             if (scriptNode)
             {
                 SelectedNode = toSelectGameObject;
-                fieldCost.readOnly = false;
-                fieldCost.text = scriptNode.data.cost.ToString();
+                CostUI.readOnly = false;
+                xPosUI.readOnly = false;
+                yPosUI.readOnly = false;
+                CostUI.text = scriptNode.data.cost.ToString();
 
                 fieldIsLocked.isOn = scriptNode.IsLocked;
                 fieldIsLocked.interactable = true;
@@ -532,7 +563,9 @@ namespace Assets.Game.Code
             }
             else if (scriptLink)
             {
-                fieldCost.readOnly = true;
+                CostUI.readOnly = true;
+                xPosUI.readOnly = true;
+                yPosUI.readOnly = true;
                 fieldIsLocked.interactable = false;
 
                 SelectedLink = toSelectGameObject;
@@ -547,7 +580,7 @@ namespace Assets.Game.Code
 
         public void ChangeSelectedCost()
         {
-            string text = TextCostObject.GetComponent<TMP_InputField>().text;
+            string text = CostUI.text;
             SelectedNode.GetComponent<NodeSPTree>().data.cost = int.Parse(text);
         }
 
