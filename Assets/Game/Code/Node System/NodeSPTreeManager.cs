@@ -489,9 +489,12 @@ namespace Assets.Game.Code
             NodeSPTree node = GetSelectedNodeScript();
             foreach (KeyValuePair<int, bool> kvp in SelectedVisualsToAdd)
             {
-                NodeVisuals visual = PSTreeApiManager.Instance.PossibleNodesVisuals[kvp.Key];
-                node.data.visuals = visual;
-                break;
+                if(kvp.Value == true)
+                {
+                    NodeVisuals visual = PSTreeApiManager.Instance.PossibleNodesVisuals[kvp.Key];
+                    node.data.visuals = visual;
+                    break;
+                }
             }
 
             UpdateVisualsToAdd();
