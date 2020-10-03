@@ -42,8 +42,9 @@ namespace Assets.Game.Code
 
         [Header("UI Edit Node - Visuals")]
         public GameObject EditVisualsUI;
-        public TMP_InputField EditVisualsUISearch, EditVisualsUILinkImage;
+        public TMP_InputField EditVisualsUISearch, EditVisualsUILinkImage, UINewVisualsName, UINewVisualsUrl;
         public RecyclingListView VisualsToAddRecyclingListView;
+        public Button EditVisualsUIRemoveSelectedButton;
 
         private readonly Dictionary<int, bool> SelectedVisualsToAdd = new Dictionary<int, bool>();
         private List<NodeVisuals> PossibleNodeVisualsToAddFiltered = new List<NodeVisuals>();
@@ -255,10 +256,18 @@ namespace Assets.Game.Code
 
         public void UpdateVisualsToAdd()
         {
+            ClearNewVisualsForm();
             SelectedVisualsToAdd.Clear();
             VisualsToAddRecyclingListView.Clear();
             VisualsToAddRecyclingListView.ItemCallback = PopulateVisualsToAdd;
             VisualsToAddRecyclingListView.RowCount = PossibleNodeVisualsToAddFiltered.Count;
+        }
+
+        void ClearNewVisualsForm()
+        {
+            EditVisualsUIRemoveSelectedButton.interactable = false;
+            UINewVisualsName.text = "";
+            UINewVisualsUrl.text = "";
         }
 
         private void PopulateSkills(RecyclingListViewItem item, int rowIndex)
@@ -335,11 +344,16 @@ namespace Assets.Game.Code
                     }
                 }
                 SelectedVisualsToAdd[id] = true;
+
+                UINewVisualsName.text = PSTreeApiManager.Instance.PossibleNodesVisuals[id].name;
+                UINewVisualsUrl.text = PSTreeApiManager.Instance.PossibleNodesVisuals[id].icon;
+                EditVisualsUIRemoveSelectedButton.interactable = true;
             };
 
             child.onUnSelectCallback = (int id) =>
             {
                 SelectedVisualsToAdd[id] = false;
+                ClearNewVisualsForm();
             };
 
             if (SelectedVisualsToAdd.ContainsKey(child.id) && SelectedVisualsToAdd[child.id] == true)
@@ -433,6 +447,15 @@ namespace Assets.Game.Code
             }
         }
 
+        public void ReloadAllNodesImages()
+        {
+            foreach (KeyValuePair<int, GameObject> kvpNode in Nodes)
+            {
+                NodeSPTree script = kvpNode.Value.GetComponent<NodeSPTree>();
+                _ = script.UpdateImage();
+            }
+        }
+
         public void OpenAddSkillAddingMenu()
         {
             EditNodeUIAddSkillMenu.SetActive(true);
@@ -487,18 +510,54 @@ namespace Assets.Game.Code
         public void SetSelectedVisual()
         {
             NodeSPTree node = GetSelectedNodeScript();
+            node.data.visuals = GetSelectedVisual();
+
+            UpdateVisualsToAdd();
+            ReloadAllNodesImages();
+        }
+
+        NodeVisuals GetSelectedVisual()
+        {
             foreach (KeyValuePair<int, bool> kvp in SelectedVisualsToAdd)
             {
-                if(kvp.Value == true)
+                if (kvp.Value == true)
                 {
                     NodeVisuals visual = PSTreeApiManager.Instance.PossibleNodesVisuals[kvp.Key];
-                    node.data.visuals = visual;
-                    break;
+                    return visual;
                 }
             }
 
+            return null;
+        }
+
+        public void AddNewVisual()
+        {
+            string name = UINewVisualsName.text;
+            string imageUrl = UINewVisualsUrl.text;
+
+            NodeVisuals n = GetSelectedVisual();
+            if(n != null)
+            {
+                n.name = name;
+                n.icon = imageUrl;
+            } else
+            {
+                PSTreeApiManager.Instance.AddNewVisual(name, imageUrl);
+            }
+
             UpdateVisualsToAdd();
-            ReloadAllNodes();
+            ReloadAllNodesImages();
+        }
+
+        public void RemoveSelectedVisual()
+        {
+            NodeVisuals n = GetSelectedVisual();
+            if (n != null)
+            {
+                PSTreeApiManager.Instance.RemoveVisual(n);
+                UpdateVisualsToAdd();
+                ReloadAllNodesImages();
+            }
         }
 
         private NodeSPTree GetSelectedNodeScript()
@@ -520,8 +579,6 @@ namespace Assets.Game.Code
 
         private void Select(GameObject toSelectGameObject)
         {
-
-
             if (SelectedNode == toSelectGameObject || SelectedLink == toSelectGameObject)
             {
                 return;

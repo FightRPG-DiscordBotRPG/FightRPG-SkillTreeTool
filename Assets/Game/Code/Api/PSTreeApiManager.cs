@@ -62,7 +62,7 @@ public class PSTreeApiManager : MonoBehaviour
 
     private async void OnDialogResult(int index)
     {
-        if(index == 0)
+        if (index == 0)
         {
             await Load();
         }
@@ -92,8 +92,31 @@ public class PSTreeApiManager : MonoBehaviour
         LoadingScreen.SetActive(true);
         SetActiveAllRelatedGameObjects(false);
         RetryButton.SetActive(false);
-        UIFill.fillAmount = 0f;
-        LoadingText.text = "Parsing to Json...";
+
+        try
+        {
+            await SaveNodesVisuals(0f, 0.5f);
+            await SaveNodes(0.5f, 1f);
+        }
+        catch (Exception ex)
+        {
+            LoadingText.text = "Error: " + ex.Message;
+            UIFill.fillAmount = 1;
+
+            // Display button restart
+            RetryButton.SetActive(true);
+        }
+
+    }
+
+    async Task SaveNodes(float loadingStart, float loadingMax)
+    {
+        float segment = (loadingMax - loadingStart) / 2;
+
+        //Step One
+        LoadingText.text = "Parsing Nodes to Json...";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
 
         List<string> allNodesData = new List<string>();
         JSONNode nodesJson = new JSONObject();
@@ -106,26 +129,52 @@ public class PSTreeApiManager : MonoBehaviour
         }
 
         nodesJson["nodes"] = allNodesData;
+        // Step 2
 
-        UIFill.fillAmount = 0.5f;
         LoadingText.text = "Sending to server... (Reload is automatic after save)";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
         WWWForm data = new WWWForm();
         data.AddField("dataNodes", nodesJson.ToString());
 
-        try
-        {
-            await PostRequestAsync("http://localhost:25012/nodes_update", data);
-            await Load();
-        } catch (Exception ex)
-        {
-            LoadingText.text = "Error: " + ex.Message;
-            UIFill.fillAmount = 1;
 
-            // Display button restart
-            RetryButton.SetActive(true);
+        await PostRequestAsync("http://localhost:25012/nodes_update", data);
+        await Load();
+
+    }
+
+    async Task SaveNodesVisuals(float loadingStart, float loadingMax)
+    {
+        float segment = (loadingMax - loadingStart) / 2;
+
+        //Step One
+        LoadingText.text = "Parsing Visuals to Json...";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+
+        List<string> allVisualsData = new List<string>();
+        JSONNode visualsJson = new JSONObject();
+
+        foreach (NodeVisuals visual in PossibleNodesVisualsAsList) { 
+            JSONNode n = JSON.Parse(JsonUtility.ToJson(visual));
+            n["localizedNames"] = new JSONObject();
+            foreach(KeyValuePair<string, string> kvp in visual.localizedNames)
+            {
+                n["localizedNames"].Add(kvp.Key, kvp.Value);
+            }
+            allVisualsData.Add(n.ToString());
         }
 
+        visualsJson["visuals"] = allVisualsData;
+        // Step 2
 
+        LoadingText.text = "Sending visuals to server...";
+        loadingStart += segment;
+        UIFill.fillAmount = loadingStart;
+        WWWForm data = new WWWForm();
+        data.AddField("visuals", visualsJson.ToString());
+
+        await PostRequestAsync("http://localhost:25012/visuals_update", data);
 
     }
 
@@ -150,7 +199,7 @@ public class PSTreeApiManager : MonoBehaviour
 
             await LoadAllNodes(0.75f, 1f);
             UIFill.fillAmount = 1;
-            
+
             LoadingScreen.SetActive(false);
 
             // Activate every needed components
@@ -226,6 +275,13 @@ public class PSTreeApiManager : MonoBehaviour
         foreach (JSONNode visual in data["visuals"].Values)
         {
             PossibleNodesVisuals[visual["id"]] = JsonUtility.FromJson<NodeVisuals>(visual.ToString());
+            var localizedNames = visual["localizedNames"];
+            
+            foreach(KeyValuePair <string, JSONNode> keyValuePair in localizedNames)
+            {
+                PossibleNodesVisuals[visual["id"]].localizedNames.Add(keyValuePair.Key, keyValuePair.Value);
+            }
+
             PossibleNodesVisualsAsList.Add(PossibleNodesVisuals[visual["id"]]);
         }
 
@@ -365,7 +421,8 @@ public class PSTreeApiManager : MonoBehaviour
     public async Task<Texture2D> GetTextureNode(string url)
     {
         Texture2D tex;
-        try {
+        try
+        {
             tex = (Texture2D)await GetTextureAsync(url);
         }
         catch
@@ -392,6 +449,24 @@ public class PSTreeApiManager : MonoBehaviour
         return result;
     }
 
+    public void AddNewVisual(string name, string imageUrl)
+    {
+        NodeVisuals n = new NodeVisuals
+        {
+            name = name,
+            icon = imageUrl,
+            id = PossibleNodesVisuals.Count + 1
+        };
+
+        PossibleNodesVisuals.Add(n.id, n);
+        PossibleNodesVisualsAsList.Add(n);
+    }
+
+    public void RemoveVisual(NodeVisuals n)
+    {
+        PossibleNodesVisuals.Remove(n.id);
+        PossibleNodesVisualsAsList.Remove(n);
+    }
 }
 
 
