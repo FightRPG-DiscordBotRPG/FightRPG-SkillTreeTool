@@ -187,7 +187,14 @@ public class NodeSPTree : MonoBehaviour
             });
         }
 
+        UpdateDataPosition();
 
+    }
+
+    private void UpdateDataPosition()
+    {
+        data.x = transform.position.x;
+        data.y = transform.position.y;
     }
 
     public void UpdateLinksPositions()
