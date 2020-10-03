@@ -23,7 +23,7 @@ namespace Assets.Game.Code
          * UI Related
          */
         [Header("UI Nodes")]
-        public GameObject LockObject = null;
+        public Toggle LockToggle, IsInitialToggle;
         public GameObject AddButton = null;
         public TMP_InputField xPosUI, yPosUI, CostUI;
 
@@ -115,9 +115,9 @@ namespace Assets.Game.Code
             }
             else if (Input.GetKeyDown(KeyCode.L) && SelectedNode)
             {
-                NodeSPTree nodeScript = SelectedNode.GetComponent<NodeSPTree>();
+                NodeSPTree nodeScript = GetSelectedNodeScript();
                 nodeScript.IsLocked = !nodeScript.IsLocked;
-                LockObject.GetComponent<Toggle>().isOn = nodeScript.IsLocked;
+                LockToggle.isOn = nodeScript.IsLocked;
             }
             else if (Input.GetKeyDown(KeyCode.N))
             {
@@ -128,11 +128,11 @@ namespace Assets.Game.Code
                 SelectedNode.GetComponent<NodeSPTree>().UnSelect();
                 SelectedNode = null;
 
-                Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
                 Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
                 CostUI.readOnly = false;
-                fieldIsLocked.interactable = false;
+                LockToggle.interactable = false;
+                IsInitialToggle.interactable = false;
                 editNodeButton.interactable = true;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
@@ -210,7 +210,7 @@ namespace Assets.Game.Code
                 return;
             }
 
-            NodeSPTree script = SelectedNode.GetComponent<NodeSPTree>();
+            NodeSPTree script = GetSelectedNodeScript();
             PossibleSkillsToAddFiltered = PSTreeApiManager.Instance.PossibleSkillsAsList;
             PossibleNodeVisualsToAddFiltered = PSTreeApiManager.Instance.PossibleNodesVisualsAsList;
 
@@ -382,7 +382,7 @@ namespace Assets.Game.Code
         {
             if (SelectedNode != null)
             {
-                NodeSPTree node = SelectedNode.GetComponent<NodeSPTree>();
+                NodeSPTree node = GetSelectedNodeScript();
                 node.data.stats[sender.transform.parent.name] = int.Parse(sender.text);
             }
         }
@@ -390,7 +390,7 @@ namespace Assets.Game.Code
         {
             if (SelectedNode != null)
             {
-                NodeSPTree node = SelectedNode.GetComponent<NodeSPTree>();
+                NodeSPTree node = GetSelectedNodeScript();
                 node.data.secondaryStats[sender.transform.parent.name] = int.Parse(sender.text);
             }
         }
@@ -530,12 +530,11 @@ namespace Assets.Game.Code
             NodeSPTree scriptNode = toSelectGameObject.GetComponent<NodeSPTree>();
             NodeLink scriptLink = toSelectGameObject.GetComponent<NodeLink>();
 
-            Toggle fieldIsLocked = LockObject.GetComponent<Toggle>();
             Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
             if (SelectedNode)
             {
-                SelectedNode.GetComponent<NodeSPTree>().UnSelect();
+                GetSelectedNodeScript().UnSelect();
             }
 
             SelectedNode = null;
@@ -557,8 +556,11 @@ namespace Assets.Game.Code
                 yPosUI.readOnly = false;
                 CostUI.text = scriptNode.data.cost.ToString();
 
-                fieldIsLocked.isOn = scriptNode.IsLocked;
-                fieldIsLocked.interactable = true;
+                LockToggle.isOn = scriptNode.IsLocked;
+                LockToggle.interactable = true;
+
+                IsInitialToggle.isOn = scriptNode.data.isInitial;
+                IsInitialToggle.interactable = true;
 
                 editNodeButton.interactable = true;
 
@@ -569,7 +571,8 @@ namespace Assets.Game.Code
                 CostUI.readOnly = true;
                 xPosUI.readOnly = true;
                 yPosUI.readOnly = true;
-                fieldIsLocked.interactable = false;
+                LockToggle.interactable = false;
+                IsInitialToggle.interactable = true;
 
                 SelectedLink = toSelectGameObject;
 
@@ -584,14 +587,22 @@ namespace Assets.Game.Code
         public void ChangeSelectedCost()
         {
             string text = CostUI.text;
-            SelectedNode.GetComponent<NodeSPTree>().data.cost = int.Parse(text);
+            GetSelectedNodeScript().data.cost = int.Parse(text);
         }
 
         public void ChangeLockState()
         {
             if (SelectedNode)
             {
-                SelectedNode.GetComponent<NodeSPTree>().IsLocked = LockObject.GetComponent<Toggle>().isOn;
+                GetSelectedNodeScript().IsLocked = LockToggle.isOn;
+            }
+        }
+
+        public void ChangeIsInitial()
+        {
+            if (SelectedNode)
+            {
+                GetSelectedNodeScript().data.isInitial = IsInitialToggle.isOn;
             }
         }
 

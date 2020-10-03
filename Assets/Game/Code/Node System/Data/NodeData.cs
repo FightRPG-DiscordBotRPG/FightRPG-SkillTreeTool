@@ -16,5 +16,5 @@ public class NodeData
     public List<int> linkedNodes = new List<int>();
     public float x = 0f, y = 0f;
     public int cost = 0;
-    public bool initial = false;
+    public bool isInitial = false;
 }
