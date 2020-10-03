@@ -88,6 +88,13 @@ public class PSTreeApiManager : MonoBehaviour
 
     public async Task Save()
     {
+        GameObject LoadingScreen = UIFill.gameObject.transform.parent.gameObject;
+        LoadingScreen.SetActive(true);
+        SetActiveAllRelatedGameObjects(false);
+        RetryButton.SetActive(false);
+        UIFill.fillAmount = 0f;
+        LoadingText.text = "Parsing to Json...";
+
         List<string> allNodesData = new List<string>();
         JSONNode nodesJson = new JSONObject();
 
@@ -100,10 +107,25 @@ public class PSTreeApiManager : MonoBehaviour
 
         nodesJson["nodes"] = allNodesData;
 
+        UIFill.fillAmount = 0.5f;
+        LoadingText.text = "Sending to server... (Reload is automatic after save)";
         WWWForm data = new WWWForm();
         data.AddField("dataNodes", nodesJson.ToString());
 
-        await PostRequestAsync("http://localhost:25012/nodes_update", data);
+        try
+        {
+            await PostRequestAsync("http://localhost:25012/nodes_update", data);
+            await Load();
+        } catch (Exception ex)
+        {
+            LoadingText.text = "Error: " + ex.Message;
+            UIFill.fillAmount = 1;
+
+            // Display button restart
+            RetryButton.SetActive(true);
+        }
+
+
 
     }
 
