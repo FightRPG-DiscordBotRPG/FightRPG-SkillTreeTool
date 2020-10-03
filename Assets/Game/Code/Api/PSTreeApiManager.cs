@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -78,6 +79,32 @@ public class PSTreeApiManager : MonoBehaviour
     public void LoadFromButtonSync()
     {
         _ = Load();
+    }
+
+    public void SaveFromButtonSync()
+    {
+        _ = Save();
+    }
+
+    public async Task Save()
+    {
+        List<string> allNodesData = new List<string>();
+        JSONNode nodesJson = new JSONObject();
+
+        foreach (GameObject node in NodeManager.Nodes.Values)
+        {
+            NodeSPTree nodeScript = node.GetComponent<NodeSPTree>();
+            nodeScript.UpdateLinksData();
+            allNodesData.Add(JsonUtility.ToJson(nodeScript.data));
+        }
+
+        nodesJson["nodes"] = allNodesData;
+
+        WWWForm data = new WWWForm();
+        data.AddField("dataNodes", nodesJson.ToString());
+
+        await PostRequestAsync("http://localhost:25012/nodes_update", data);
+
     }
 
     public async Task Load()
@@ -232,6 +259,20 @@ public class PSTreeApiManager : MonoBehaviour
     public async Task<UnityWebRequest> GetRequestAsync(string url, bool throwException = true)
     {
         UnityWebRequest request = UnityWebRequest.Get(url);
+        await request.SendWebRequest();
+        if (request.isNetworkError && throwException)
+        {
+            throw new Exception(request.error);
+        }
+        else
+        {
+            return request;
+        }
+    }
+
+    public async Task<UnityWebRequest> PostRequestAsync(string url, WWWForm data, bool throwException = true)
+    {
+        UnityWebRequest request = UnityWebRequest.Post(url, data);
         await request.SendWebRequest();
         if (request.isNetworkError && throwException)
         {

@@ -87,8 +87,22 @@ public class NodeSPTree : MonoBehaviour
 
         }
 
+        UpdateAllJoinsMeshes();
+    }
+
+    void UpdateAllJoinsMeshes()
+    {
         AllJoinsChildren.ForEach((GameObject o) => o.GetComponent<NodeLink>().UpdateMesh());
         AllJoinsParents.ForEach((GameObject o) => o.GetComponent<NodeLink>().UpdateMesh());
+    }
+
+    public void UpdateLinksData()
+    {
+        data.linkedNodes.Clear();
+        foreach(NodeSPTree node in Children)
+        {
+            data.linkedNodes.Add(node.data.id);
+        }
     }
 
     public void AddJoin(NodeSPTree otherNode)
@@ -156,7 +170,7 @@ public class NodeSPTree : MonoBehaviour
 
     bool TryAddParent(NodeSPTree newParent)
     {
-        if (!Parents.Contains(newParent) && !Children.Contains(newParent))
+        if (!Parents.Contains(newParent) && !Children.Contains(newParent) && this != newParent)
         {
             Parents.Add(newParent);
             return true;
