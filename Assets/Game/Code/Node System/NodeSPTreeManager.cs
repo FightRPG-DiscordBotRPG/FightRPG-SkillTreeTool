@@ -71,7 +71,7 @@ namespace Assets.Game.Code
 
         private void UpdateSelectedNodePositionInUI()
         {
-            if (SelectedNode)
+            if (SelectedNode && !xPosUI.isFocused && !yPosUI.isFocused)
             {
                 xPosUI.text = SelectedNode.transform.position.x.ToString();
                 yPosUI.text = SelectedNode.transform.position.y.ToString();
@@ -80,18 +80,19 @@ namespace Assets.Game.Code
 
         public void UpdateFromUIPositionX()
         {
-            if (SelectedNode && GetSelectedNodeScript().IsLocked)
+            if (SelectedNode && GetSelectedNodeScript().IsLocked && float.TryParse(xPosUI.text, out float x))
             {
-                SelectedNode.transform.position = new Vector3(float.Parse(xPosUI.text), SelectedNode.transform.position.y, SelectedNode.transform.position.z);
+
+                SelectedNode.transform.position = new Vector3(x, SelectedNode.transform.position.y, SelectedNode.transform.position.z);
                 GetSelectedNodeScript().UpdateLinksPositions();
             }
         }
 
         public void UpdateFromUIPositionY()
         {
-            if (SelectedNode && GetSelectedNodeScript().IsLocked)
+            if (SelectedNode && GetSelectedNodeScript().IsLocked && float.TryParse(yPosUI.text, out float y))
             {
-                SelectedNode.transform.position = new Vector3(SelectedNode.transform.position.x, float.Parse(yPosUI.text), SelectedNode.transform.position.z);
+                SelectedNode.transform.position = new Vector3(SelectedNode.transform.position.x, y, SelectedNode.transform.position.z);
                 GetSelectedNodeScript().UpdateLinksPositions();
             }
         }
@@ -643,8 +644,11 @@ namespace Assets.Game.Code
 
         public void ChangeSelectedCost()
         {
-            string text = CostUI.text;
-            GetSelectedNodeScript().data.cost = int.Parse(text);
+            if(SelectedNode)
+            {
+                string text = CostUI.text;
+                GetSelectedNodeScript().data.cost = int.Parse(text);
+            }
         }
 
         public void ChangeLockState()

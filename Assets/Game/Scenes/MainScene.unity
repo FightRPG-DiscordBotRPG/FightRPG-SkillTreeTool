@@ -17248,14 +17248,14 @@ MonoBehaviour:
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
   m_ScrollSensitivity: 1
-  m_ContentType: 3
+  m_ContentType: 4
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 2
+  m_KeyboardType: 1
   m_LineType: 0
   m_HideMobileInput: 0
   m_HideSoftKeyboard: 0
-  m_CharacterValidation: 3
+  m_CharacterValidation: 4
   m_RegexValue: 
   m_GlobalPointSize: 26
   m_CharacterLimit: 0
@@ -18484,14 +18484,14 @@ MonoBehaviour:
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
   m_ScrollSensitivity: 1
-  m_ContentType: 3
+  m_ContentType: 4
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 2
+  m_KeyboardType: 1
   m_LineType: 0
   m_HideMobileInput: 0
   m_HideSoftKeyboard: 0
-  m_CharacterValidation: 3
+  m_CharacterValidation: 4
   m_RegexValue: 
   m_GlobalPointSize: 26
   m_CharacterLimit: 0
@@ -36025,15 +36025,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -36.239822
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_SizeDelta.y
@@ -36157,15 +36157,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5313719559807406284, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5313719559807406284, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5313719559807406284, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -81.02982
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5313719559807406284, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_SizeDelta.y
