@@ -16,7 +16,8 @@ public class NodeSPTree : MonoBehaviour
     public bool IsLocked = false;
     public GameObject JoinPrefab;
 
-    private float distance;
+    private float distanceFromCamera;
+    private Vector3 dragOffset;
     private bool dragging, linking;
     private GameObject spawnedJoin;
 
@@ -49,7 +50,11 @@ public class NodeSPTree : MonoBehaviour
 
         if (!IsLocked)
         {
-            distance = Vector3.Distance(transform.position, Camera.main.transform.position);
+            distanceFromCamera = Vector3.Distance(transform.position, Camera.main.transform.position);
+
+            Vector3 ray = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            dragOffset = transform.position - ray;
+
             dragging = true;
         }
         else
@@ -88,6 +93,32 @@ public class NodeSPTree : MonoBehaviour
         }
 
         UpdateAllJoinsMeshes();
+    }
+
+    void Update()
+    {
+        if (dragging && !IsLocked)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Vector3 rayPoint = ray.GetPoint(distanceFromCamera);
+            transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z) + new Vector3(dragOffset.x, dragOffset.y);
+
+            UpdateLinksPositions();
+        }
+
+        if (linking)
+        {
+            Camera c = Camera.main;
+            Vector3 pointInWorld = c.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y));
+            pointInWorld.z = 1f;
+            spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]{
+                new Vector3(transform.position.x, transform.position.y, 1f),
+                pointInWorld
+            });
+        }
+
+        UpdateDataPosition();
+
     }
 
     void UpdateAllJoinsMeshes()
@@ -177,32 +208,6 @@ public class NodeSPTree : MonoBehaviour
         }
 
         return false;
-    }
-
-    void Update()
-    {
-        if (dragging && !IsLocked)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            Vector3 rayPoint = ray.GetPoint(distance);
-            transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z);
-
-            UpdateLinksPositions();
-        }
-
-        if (linking)
-        {
-            Camera c = Camera.main;
-            Vector3 pointInWorld = c.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y));
-            pointInWorld.z = 1f;
-            spawnedJoin.GetComponent<LineRenderer>().SetPositions(new[]{
-                new Vector3(transform.position.x, transform.position.y, 1f),
-                pointInWorld
-            });
-        }
-
-        UpdateDataPosition();
-
     }
 
     private void UpdateDataPosition()
