@@ -71,7 +71,7 @@ namespace Assets.Game.Code
 
         private void UpdateSelectedNodePositionInUI()
         {
-            if (SelectedNode && !xPosUI.isFocused && !yPosUI.isFocused)
+            if (SelectedNode && !IsUiFocused())
             {
                 xPosUI.text = SelectedNode.transform.position.x.ToString();
                 yPosUI.text = SelectedNode.transform.position.y.ToString();
@@ -80,7 +80,7 @@ namespace Assets.Game.Code
 
         public void UpdateFromUIPositionX()
         {
-            if (SelectedNode && GetSelectedNodeScript().IsLocked && float.TryParse(xPosUI.text, out float x))
+            if (SelectedNode && float.TryParse(xPosUI.text, out float x))
             {
 
                 SelectedNode.transform.position = new Vector3(x, SelectedNode.transform.position.y, SelectedNode.transform.position.z);
@@ -90,7 +90,7 @@ namespace Assets.Game.Code
 
         public void UpdateFromUIPositionY()
         {
-            if (SelectedNode && GetSelectedNodeScript().IsLocked && float.TryParse(yPosUI.text, out float y))
+            if (SelectedNode && float.TryParse(yPosUI.text, out float y))
             {
                 SelectedNode.transform.position = new Vector3(SelectedNode.transform.position.x, y, SelectedNode.transform.position.z);
                 GetSelectedNodeScript().UpdateLinksPositions();
