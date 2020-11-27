@@ -562,6 +562,15 @@ namespace Assets.Game.Code
 
         public void RemoveSelectedVisual()
         {
+            PSTreeApiManager.Instance.confirmReloadDialogBox.Show("Remove", "Are you sure to remove this visual?", null, RealRemoveVisual, new string[] { "Delete", "Cancel" });
+        }
+
+        private void RealRemoveVisual(int index)
+        {
+            if(index != 0 )
+            {
+                return;
+            }
             NodeVisuals n = GetSelectedVisual();
             if (n != null)
             {
