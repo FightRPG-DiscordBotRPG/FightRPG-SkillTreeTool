@@ -103,6 +103,11 @@ public class NodeSPTree : MonoBehaviour
             Vector3 rayPoint = ray.GetPoint(distanceFromCamera);
             transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z) + new Vector3(dragOffset.x, dragOffset.y);
 
+            if(Manager.IsGridActive)
+            {
+                transform.position = new Vector3(NodeSPTreeManager.RoundSnapGrid(transform.position.x), NodeSPTreeManager.RoundSnapGrid(transform.position.y), transform.position.z);
+            }
+
             UpdateLinksPositions();
         }
 
@@ -278,7 +283,6 @@ public class NodeSPTree : MonoBehaviour
     {
         GetComponent<SpriteRenderer>().material = NonSelectedMaterial;
     }
-
 
 
 }

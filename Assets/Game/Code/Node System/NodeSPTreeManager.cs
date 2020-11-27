@@ -51,6 +51,8 @@ namespace Assets.Game.Code
 
         private int currentIdToGenerate = 1;
 
+        public bool IsGridActive { get; private set; } = false;
+
         // Use this for initialization
         void Start()
         {
@@ -138,6 +140,9 @@ namespace Assets.Game.Code
                 editNodeButton.interactable = true;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
+            } else if (Input.GetKeyDown(KeyCode.G))
+            {
+                IsGridActive ^= true;
             }
 
         }
@@ -172,6 +177,11 @@ namespace Assets.Game.Code
         {
             GameObject Node = Instantiate(EmptyNodePrefab, Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2)), Quaternion.identity, NodesGroup.transform);
             Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
+            
+            if(IsGridActive)
+            {
+                Node.transform.position = new Vector3(RoundSnapGrid(Node.transform.position.x),  RoundSnapGrid(Node.transform.position.y), 0);
+            }
             //Node.transform.localPosition = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
 
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
@@ -665,6 +675,12 @@ namespace Assets.Game.Code
             {
                 GetSelectedNodeScript().data.isInitial = IsInitialToggle.isOn;
             }
+        }
+
+        public static float RoundSnapGrid(float number)
+        {
+            float snapValue = 0.5f;
+            return snapValue * Mathf.Round(number / snapValue);
         }
 
     }
