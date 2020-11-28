@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -29,6 +30,7 @@ public class NodeSPTree : MonoBehaviour
     public NodeData data = new NodeData();
 
     private SpriteRenderer sprite;
+    private TextMeshPro costText; 
     public NodeSPTreeManager Manager;
 
 
@@ -36,6 +38,8 @@ public class NodeSPTree : MonoBehaviour
     void Start()
     {
         sprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
+        costText = transform.GetChild(1).GetComponent<TextMeshPro>();
+        costText.text = data.cost.ToString();
     }
 
     void OnMouseDown()
@@ -282,6 +286,12 @@ public class NodeSPTree : MonoBehaviour
     public void UnSelect()
     {
         GetComponent<SpriteRenderer>().material = NonSelectedMaterial;
+    }
+
+    public void SetCost(int cost)
+    {
+        data.cost = cost;
+        costText.text = cost.ToString();
     }
 
 

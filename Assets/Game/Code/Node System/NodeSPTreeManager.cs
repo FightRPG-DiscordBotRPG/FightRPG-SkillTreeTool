@@ -666,7 +666,7 @@ namespace Assets.Game.Code
             if(SelectedNode)
             {
                 string text = CostUI.text;
-                GetSelectedNodeScript().data.cost = int.Parse(text);
+                GetSelectedNodeScript().SetCost(int.Parse(text));
             }
         }
 
