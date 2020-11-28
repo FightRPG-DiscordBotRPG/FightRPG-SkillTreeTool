@@ -552,7 +552,7 @@ namespace Assets.Game.Code
             node.data.visuals = GetSelectedVisual();
 
             UpdateVisualsToAdd();
-            ReloadAllNodesImages();
+            _ = node.UpdateImage();
         }
 
         NodeVisuals GetSelectedVisual()
