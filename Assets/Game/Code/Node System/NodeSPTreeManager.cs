@@ -53,6 +53,8 @@ namespace Assets.Game.Code
 
         public bool IsGridActive { get; private set; } = false;
 
+        private NodeSPTree clipBoardNodeCopy = null;
+
         // Use this for initialization
         void Start()
         {
@@ -143,6 +145,12 @@ namespace Assets.Game.Code
             } else if (Input.GetKeyDown(KeyCode.G))
             {
                 IsGridActive ^= true;
+            } else if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C) && SelectedNode)
+            {
+                clipBoardNodeCopy = GetSelectedNodeScript();
+            } else if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V) && clipBoardNodeCopy)
+            {
+                CopyToNewNode(clipBoardNodeCopy);
             }
 
         }
@@ -171,6 +179,25 @@ namespace Assets.Game.Code
         {
             node.Remove();
             Nodes.Remove(node.data.id);
+        }
+
+        private void CopyToNewNode(NodeSPTree originalNode)
+        {
+            
+            NodeData nData = JsonUtility.FromJson<NodeData>(JsonUtility.ToJson(originalNode.data));
+            Vector3 spawnPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2));
+            nData.x = spawnPos.x;
+            nData.y = spawnPos.y;
+            nData.linkedNodes.Clear();
+            nData.id = currentIdToGenerate;
+            NodeSPTree node = LoadNodeFromData(nData);
+            for(int i= 0; i < node.data.skillsUnlocked.Count; i++)
+            {
+                nData.skillsUnlocked[i] = PSTreeApiManager.Instance.PossibleSkills[nData.skillsUnlocked[i].id];
+            }
+            node.IsLocked = false;
+            _ = node.UpdateImage();
+            Select(node.gameObject);
         }
 
         public void AddNewNode()
@@ -420,7 +447,7 @@ namespace Assets.Game.Code
             }
         }
 
-        public void LoadNodeFromData(NodeData nData)
+        public NodeSPTree LoadNodeFromData(NodeData nData)
         {
             GameObject Node = Instantiate(EmptyNodePrefab, new Vector3(nData.x, nData.y), Quaternion.identity, NodesGroup.transform);
             Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
@@ -433,6 +460,7 @@ namespace Assets.Game.Code
             script.data = nData;
             script.IsLocked = true;
             script.Manager = this;
+            return script;
         }
 
         private void AddNode(GameObject node)
