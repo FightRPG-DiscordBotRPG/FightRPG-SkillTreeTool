@@ -142,15 +142,30 @@ namespace Assets.Game.Code
                 editNodeButton.interactable = true;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
-            } else if (Input.GetKeyDown(KeyCode.G))
+            }
+            else if (Input.GetKeyDown(KeyCode.G))
             {
                 IsGridActive ^= true;
-            } else if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C) && SelectedNode)
+            }
+            else if (Input.GetKeyDown(KeyCode.E))
+            {
+                EditNode();
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C) && SelectedNode)
             {
                 clipBoardNodeCopy = GetSelectedNodeScript();
-            } else if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V) && clipBoardNodeCopy)
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V) && clipBoardNodeCopy)
             {
                 CopyToNewNode(clipBoardNodeCopy);
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.S))
+            {
+                PSTreeApiManager.Instance.SaveFromButtonSync();
+            }
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.R))
+            {
+                PSTreeApiManager.Instance.Reload();
             }
 
         }
@@ -183,7 +198,7 @@ namespace Assets.Game.Code
 
         private void CopyToNewNode(NodeSPTree originalNode)
         {
-            
+
             NodeData nData = JsonUtility.FromJson<NodeData>(JsonUtility.ToJson(originalNode.data));
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2));
             nData.x = spawnPos.x;
@@ -191,7 +206,7 @@ namespace Assets.Game.Code
             nData.linkedNodes.Clear();
             nData.id = currentIdToGenerate;
             NodeSPTree node = LoadNodeFromData(nData);
-            for(int i= 0; i < node.data.skillsUnlocked.Count; i++)
+            for (int i = 0; i < node.data.skillsUnlocked.Count; i++)
             {
                 nData.skillsUnlocked[i] = PSTreeApiManager.Instance.PossibleSkills[nData.skillsUnlocked[i].id];
             }
@@ -204,10 +219,10 @@ namespace Assets.Game.Code
         {
             GameObject Node = Instantiate(EmptyNodePrefab, Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2)), Quaternion.identity, NodesGroup.transform);
             Node.transform.position = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
-            
-            if(IsGridActive)
+
+            if (IsGridActive)
             {
-                Node.transform.position = new Vector3(RoundSnapGrid(Node.transform.position.x),  RoundSnapGrid(Node.transform.position.y), 0);
+                Node.transform.position = new Vector3(RoundSnapGrid(Node.transform.position.x), RoundSnapGrid(Node.transform.position.y), 0);
             }
             //Node.transform.localPosition = new Vector3(Node.transform.position.x, Node.transform.position.y, 0);
 
@@ -575,11 +590,12 @@ namespace Assets.Game.Code
             string imageUrl = UINewVisualsUrl.text;
 
             NodeVisuals n = GetSelectedVisual();
-            if(n != null)
+            if (n != null)
             {
                 n.name = name;
                 n.icon = imageUrl;
-            } else
+            }
+            else
             {
                 PSTreeApiManager.Instance.AddNewVisual(name, imageUrl);
             }
@@ -595,7 +611,7 @@ namespace Assets.Game.Code
 
         private void RealRemoveVisual(int index)
         {
-            if(index != 0 )
+            if (index != 0)
             {
                 return;
             }
@@ -691,7 +707,7 @@ namespace Assets.Game.Code
 
         public void ChangeSelectedCost()
         {
-            if(SelectedNode)
+            if (SelectedNode)
             {
                 string text = CostUI.text;
                 GetSelectedNodeScript().SetCost(int.Parse(text));
