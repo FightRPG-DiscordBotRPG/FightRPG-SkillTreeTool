@@ -34,6 +34,8 @@ public class PSTreeApiManager : MonoBehaviour
     public readonly List<Skill> PossibleSkillsAsList = new List<Skill>();
     public readonly List<NodeVisuals> PossibleNodesVisualsAsList = new List<NodeVisuals>();
 
+    private readonly Dictionary<string, Texture2D> TextureCache = new Dictionary<string, Texture2D>();
+
     public static PSTreeApiManager Instance
     {
         get
@@ -384,17 +386,26 @@ public class PSTreeApiManager : MonoBehaviour
         }
         else
         {
-            UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
-            await request.SendWebRequest();
+            if(TextureCache.ContainsKey(url))
+            {
+                return TextureCache[url];
+            } else
+            {
+                UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
+                await request.SendWebRequest();
 
-            if (request.isNetworkError)
-            {
-                return DefaultTextureIfFail;
+                if (request.isNetworkError)
+                {
+                    return DefaultTextureIfFail;
+                }
+                else
+                {
+                    Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+                    TextureCache.Add(url, texture);
+                    return texture;
+                }
             }
-            else
-            {
-                return ((DownloadHandlerTexture)request.downloadHandler).texture;
-            }
+
         }
 
 
