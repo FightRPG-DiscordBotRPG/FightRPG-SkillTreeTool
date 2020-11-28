@@ -291,7 +291,10 @@ public class NodeSPTree : MonoBehaviour
     public void SetCost(int cost)
     {
         data.cost = cost;
-        costText.text = cost.ToString();
+        if(costText)
+        {
+            costText.text = cost.ToString();
+        }
     }
 
 
