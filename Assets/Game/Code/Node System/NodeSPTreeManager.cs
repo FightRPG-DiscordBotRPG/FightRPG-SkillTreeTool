@@ -199,6 +199,9 @@ namespace Assets.Game.Code
             else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.R))
             {
                 PSTreeApiManager.Instance.Reload();
+            } else if(Input.GetKey(KeyCode.Escape))
+            {
+                PSTreeApiManager.Instance.confirmReloadDialogBox.Show("Exit", "Are you sure to quit? (Unsaved work will be lost)", null, Application.Quit, new string[] { "Quit", "Cancel" });
             }
 
         }
