@@ -25,7 +25,7 @@ namespace Assets.Game.Code
         [Header("UI Nodes")]
         public Toggle LockToggle, IsInitialToggle;
         public GameObject AddButton = null;
-        public TMP_InputField xPosUI, yPosUI, CostUI;
+        public TMP_InputField xPosUI, yPosUI, CostUI, IdUI;
 
         [Header("UI Edit Node")]
         public GameObject EditNodeUI;
@@ -79,6 +79,37 @@ namespace Assets.Game.Code
             {
                 xPosUI.text = SelectedNode.transform.position.x.ToString();
                 yPosUI.text = SelectedNode.transform.position.y.ToString();
+            }
+        }
+
+        public void UpdateFromUIIdentifier()
+        {
+            if(SelectedNode && int.TryParse(IdUI.text, out int id))
+            {
+
+                NodeSPTree selectedNodeScript = GetSelectedNodeScript();
+                if (Nodes.ContainsKey(id))
+                {
+                    if(Nodes[id] != SelectedNode)
+                    {
+                        GameObject toSwapNode = Nodes[id];
+                        NodeSPTree toSwapScript = toSwapNode.GetComponent<NodeSPTree>();
+
+                        Nodes[selectedNodeScript.data.id] = toSwapNode;
+                        toSwapScript.data.id = selectedNodeScript.data.id;
+
+                        Nodes[id] = SelectedNode;
+                        selectedNodeScript.data.id = id;
+                    }
+
+                    
+                } else
+                {
+                    // Move from index x to index y and change id
+                    Nodes.Remove(selectedNodeScript.data.id);
+                    selectedNodeScript.data.id = id;
+                    Nodes.Add(id, SelectedNode);
+                }
             }
         }
 
@@ -142,6 +173,7 @@ namespace Assets.Game.Code
                 editNodeButton.interactable = true;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
+                IdUI.readOnly = false;
             }
             else if (Input.GetKeyDown(KeyCode.G))
             {
@@ -172,7 +204,7 @@ namespace Assets.Game.Code
 
         private bool IsUiFocused()
         {
-            return xPosUI.isFocused || yPosUI.isFocused || CostUI.isFocused;
+            return xPosUI.isFocused || yPosUI.isFocused || CostUI.isFocused || IdUI.isFocused;
         }
 
         private void TryToRemoveSelection()
@@ -203,7 +235,7 @@ namespace Assets.Game.Code
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2));
             nData.x = spawnPos.x;
             nData.y = spawnPos.y;
-            nData.linkedNodes.Clear();
+            nData.linkedNodesIds.Clear();
             nData.id = currentIdToGenerate;
             NodeSPTree node = LoadNodeFromData(nData);
             for (int i = 0; i < node.data.skillsUnlocked.Count; i++)
@@ -490,7 +522,7 @@ namespace Assets.Game.Code
             {
                 NodeSPTree script = kvpNode.Value.GetComponent<NodeSPTree>();
                 _ = script.UpdateImage();
-                foreach (int id in script.data.linkedNodes)
+                foreach (int id in script.data.linkedNodesIds)
                 {
                     if (Nodes.ContainsKey(id))
                     {
@@ -675,7 +707,9 @@ namespace Assets.Game.Code
                 CostUI.readOnly = false;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
+                IdUI.readOnly = false;
                 CostUI.text = scriptNode.data.cost.ToString();
+                IdUI.text = scriptNode.data.id.ToString();
 
                 LockToggle.isOn = scriptNode.IsLocked;
                 LockToggle.interactable = true;
@@ -692,6 +726,7 @@ namespace Assets.Game.Code
                 CostUI.readOnly = true;
                 xPosUI.readOnly = true;
                 yPosUI.readOnly = true;
+                IdUI.readOnly = true;
                 LockToggle.interactable = false;
                 IsInitialToggle.interactable = true;
 

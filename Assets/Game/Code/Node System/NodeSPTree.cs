@@ -138,10 +138,10 @@ public class NodeSPTree : MonoBehaviour
 
     public void UpdateLinksData()
     {
-        data.linkedNodes.Clear();
+        data.linkedNodesIds.Clear();
         foreach(NodeSPTree node in Children)
         {
-            data.linkedNodes.Add(node.data.id);
+            data.linkedNodesIds.Add(node.data.id);
         }
     }
 
