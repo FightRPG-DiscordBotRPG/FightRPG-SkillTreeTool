@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Assets.Game.Code
 {
@@ -516,12 +517,12 @@ namespace Assets.Game.Code
             currentIdToGenerate++;
         }
 
-        public void ReloadAllNodes()
+        public async Task ReloadAllNodes()
         {
             foreach (KeyValuePair<int, GameObject> kvpNode in Nodes)
             {
                 NodeSPTree script = kvpNode.Value.GetComponent<NodeSPTree>();
-                _ = script.UpdateImage();
+                await script.UpdateImage();
                 foreach (int id in script.data.linkedNodesIds)
                 {
                     if (Nodes.ContainsKey(id))

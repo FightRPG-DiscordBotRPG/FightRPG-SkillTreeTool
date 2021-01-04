@@ -157,10 +157,11 @@ public class PSTreeApiManager : MonoBehaviour
         List<string> allVisualsData = new List<string>();
         JSONNode visualsJson = new JSONObject();
 
-        foreach (NodeVisuals visual in PossibleNodesVisualsAsList) { 
+        foreach (NodeVisuals visual in PossibleNodesVisualsAsList)
+        {
             JSONNode n = JSON.Parse(JsonUtility.ToJson(visual));
             n["localizedNames"] = new JSONObject();
-            foreach(KeyValuePair<string, string> kvp in visual.localizedNames)
+            foreach (KeyValuePair<string, string> kvp in visual.localizedNames)
             {
                 n["localizedNames"].Add(kvp.Key, kvp.Value);
             }
@@ -253,7 +254,7 @@ public class PSTreeApiManager : MonoBehaviour
         UIFill.fillAmount = loadingStart;
 
         NodeManager.UpdateIds();
-        NodeManager.ReloadAllNodes();
+        await NodeManager.ReloadAllNodes();
 
     }
 
@@ -278,8 +279,8 @@ public class PSTreeApiManager : MonoBehaviour
         {
             PossibleNodesVisuals[visual["id"]] = JsonUtility.FromJson<NodeVisuals>(visual.ToString());
             var localizedNames = visual["localizedNames"];
-            
-            foreach(KeyValuePair <string, JSONNode> keyValuePair in localizedNames)
+
+            foreach (KeyValuePair<string, JSONNode> keyValuePair in localizedNames)
             {
                 PossibleNodesVisuals[visual["id"]].localizedNames.Add(keyValuePair.Key, keyValuePair.Value);
             }
@@ -386,10 +387,11 @@ public class PSTreeApiManager : MonoBehaviour
         }
         else
         {
-            if(TextureCache.ContainsKey(url))
+            if (TextureCache.ContainsKey(url))
             {
                 return TextureCache[url];
-            } else
+            }
+            else
             {
                 UnityWebRequest request = UnityWebRequestTexture.GetTexture(url);
                 await request.SendWebRequest();
