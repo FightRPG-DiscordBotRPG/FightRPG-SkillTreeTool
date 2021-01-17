@@ -44,6 +44,7 @@ namespace Assets.Game.Code
         [Header("UI Edit Node - Visuals")]
         public GameObject EditVisualsUI;
         public TMP_InputField EditVisualsUISearch, EditVisualsUILinkImage, UINewVisualsName, UINewVisualsUrl;
+        public TMP_Text SelectedVisualUIName;
         public RecyclingListView VisualsToAddRecyclingListView;
         public Button EditVisualsUIRemoveSelectedButton;
 
@@ -352,6 +353,7 @@ namespace Assets.Game.Code
             VisualsToAddRecyclingListView.Clear();
             VisualsToAddRecyclingListView.ItemCallback = PopulateVisualsToAdd;
             VisualsToAddRecyclingListView.RowCount = PossibleNodeVisualsToAddFiltered.Count;
+            SelectedVisualUIName.text = GetSelectedNodeScript().data.visuals.name;
         }
 
         void ClearNewVisualsForm()
