@@ -4,6 +4,7 @@ using SimpleJSON;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TMPro;
@@ -34,6 +35,11 @@ public class PSTreeApiManager : MonoBehaviour
     public readonly List<Skill> PossibleSkillsAsList = new List<Skill>();
     public readonly List<NodeVisuals> PossibleNodesVisualsAsList = new List<NodeVisuals>();
 
+    public string BackendHost
+    {
+        get; private set;
+    }
+
     private readonly Dictionary<string, Texture2D> TextureCache = new Dictionary<string, Texture2D>();
 
     public static PSTreeApiManager Instance
@@ -48,6 +54,27 @@ public class PSTreeApiManager : MonoBehaviour
     void Start()
     {
         _Instance = this;
+        try
+        {
+            string configPath = Directory.GetCurrentDirectory() + Path.DirectorySeparatorChar + "config.json";
+
+            if (!File.Exists(configPath))
+            {
+                var jsonConfig = new JSONObject();
+                jsonConfig.Add("host", "http://127.0.0.1:25012");
+
+                File.WriteAllText(configPath, jsonConfig.ToString());
+            }
+
+
+            JSONNode config = JSON.Parse(File.ReadAllText(configPath));
+           
+            BackendHost = config["host"];
+        } catch
+        {
+            BackendHost = "http://127.0.0.1:25012";
+        }
+
         _ = Load();
     }
 
@@ -140,7 +167,7 @@ public class PSTreeApiManager : MonoBehaviour
         data.AddField("dataNodes", nodesJson.ToString());
 
 
-        await PostRequestAsync("http://localhost:25012/nodes_update", data);
+        await PostRequestAsync(BackendHost + "/nodes_update", data);
         await Load();
 
     }
@@ -177,7 +204,7 @@ public class PSTreeApiManager : MonoBehaviour
         WWWForm data = new WWWForm();
         data.AddField("visuals", visualsJson.ToString());
 
-        await PostRequestAsync("http://localhost:25012/visuals_update", data);
+        await PostRequestAsync(BackendHost +"/visuals_update", data);
 
     }
 
@@ -210,7 +237,7 @@ public class PSTreeApiManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            LoadingText.text = "Error: " + ex.Message;
+            LoadingText.text = "Error: " + ex.ToString();
             UIFill.fillAmount = 1;
 
             // Display button restart
@@ -223,7 +250,7 @@ public class PSTreeApiManager : MonoBehaviour
         float segment = (loadingMax - loadingStart) / 3;
 
         LoadingText.text = "Loading Nodes...";
-        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/nodes");
+        UnityWebRequest request = await GetRequestAsync(BackendHost + "/nodes");
 
 
         LoadingText.text = "Parsing Data...";
@@ -265,7 +292,7 @@ public class PSTreeApiManager : MonoBehaviour
 
         PossibleNodesVisuals.Clear();
         PossibleNodesVisualsAsList.Clear();
-        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/nodes/visuals");
+        UnityWebRequest request = await GetRequestAsync(BackendHost +"/nodes/visuals");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
@@ -297,7 +324,7 @@ public class PSTreeApiManager : MonoBehaviour
 
         PossibleSkills.Clear();
         PossibleSkillsAsList.Clear();
-        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/skills");
+        UnityWebRequest request = await GetRequestAsync(BackendHost +"/skills");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
@@ -320,7 +347,7 @@ public class PSTreeApiManager : MonoBehaviour
         LoadingText.text = "Loading States...";
 
         PossibleStates.Clear();
-        UnityWebRequest request = await GetRequestAsync("http://localhost:25012/states");
+        UnityWebRequest request = await GetRequestAsync(BackendHost + "/states");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
