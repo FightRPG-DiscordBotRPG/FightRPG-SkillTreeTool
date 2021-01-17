@@ -237,7 +237,7 @@ public class PSTreeApiManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            LoadingText.text = "Error: " + ex.ToString();
+            LoadingText.text = "Error: " + ex.Message;
             UIFill.fillAmount = 1;
 
             // Display button restart
