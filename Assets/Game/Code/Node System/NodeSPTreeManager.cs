@@ -14,7 +14,7 @@ namespace Assets.Game.Code
     public class NodeSPTreeManager : MonoBehaviour
     {
         [Header("Nodes Related")]
-        public SortedDictionary<int, GameObject> Nodes = new SortedDictionary<int, GameObject>();
+        public Dictionary<int, GameObject> Nodes = new Dictionary<int, GameObject>();
         public GameObject EmptyNodePrefab, NodesGroup, NodeJoinPrefab;
 
         [HideInInspector]

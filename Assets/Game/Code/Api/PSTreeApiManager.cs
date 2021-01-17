@@ -68,9 +68,10 @@ public class PSTreeApiManager : MonoBehaviour
 
 
             JSONNode config = JSON.Parse(File.ReadAllText(configPath));
-           
+
             BackendHost = config["host"];
-        } catch
+        }
+        catch
         {
             BackendHost = "http://127.0.0.1:25012";
         }
@@ -204,7 +205,7 @@ public class PSTreeApiManager : MonoBehaviour
         WWWForm data = new WWWForm();
         data.AddField("visuals", visualsJson.ToString());
 
-        await PostRequestAsync(BackendHost +"/visuals_update", data);
+        await PostRequestAsync(BackendHost + "/visuals_update", data);
 
     }
 
@@ -280,7 +281,7 @@ public class PSTreeApiManager : MonoBehaviour
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
-        NodeManager.UpdateIds();
+        //NodeManager.UpdateIds();
         await NodeManager.ReloadAllNodes();
 
     }
@@ -292,7 +293,7 @@ public class PSTreeApiManager : MonoBehaviour
 
         PossibleNodesVisuals.Clear();
         PossibleNodesVisualsAsList.Clear();
-        UnityWebRequest request = await GetRequestAsync(BackendHost +"/nodes/visuals");
+        UnityWebRequest request = await GetRequestAsync(BackendHost + "/nodes/visuals");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
@@ -324,7 +325,7 @@ public class PSTreeApiManager : MonoBehaviour
 
         PossibleSkills.Clear();
         PossibleSkillsAsList.Clear();
-        UnityWebRequest request = await GetRequestAsync(BackendHost +"/skills");
+        UnityWebRequest request = await GetRequestAsync(BackendHost + "/skills");
         loadingStart += segment;
         UIFill.fillAmount = loadingStart;
 
