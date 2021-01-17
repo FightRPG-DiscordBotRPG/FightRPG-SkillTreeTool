@@ -85,13 +85,13 @@ namespace Assets.Game.Code
 
         public void UpdateFromUIIdentifier()
         {
-            if(SelectedNode && int.TryParse(IdUI.text, out int id))
+            if (SelectedNode && int.TryParse(IdUI.text, out int id))
             {
 
                 NodeSPTree selectedNodeScript = GetSelectedNodeScript();
                 if (Nodes.ContainsKey(id))
                 {
-                    if(Nodes[id] != SelectedNode)
+                    if (Nodes[id] != SelectedNode)
                     {
                         GameObject toSwapNode = Nodes[id];
                         NodeSPTree toSwapScript = toSwapNode.GetComponent<NodeSPTree>();
@@ -103,8 +103,9 @@ namespace Assets.Game.Code
                         selectedNodeScript.data.id = id;
                     }
 
-                    
-                } else
+
+                }
+                else
                 {
                     // Move from index x to index y and change id
                     Nodes.Remove(selectedNodeScript.data.id);
@@ -199,7 +200,8 @@ namespace Assets.Game.Code
             else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.R))
             {
                 PSTreeApiManager.Instance.Reload();
-            } else if(Input.GetKey(KeyCode.Escape))
+            }
+            else if (Input.GetKey(KeyCode.Escape))
             {
                 PSTreeApiManager.Instance.confirmReloadDialogBox.Show("Exit", "Are you sure to quit? (Unsaved work will be lost)", null, Application.Quit, new string[] { "Quit", "Cancel" });
             }
@@ -514,9 +516,14 @@ namespace Assets.Game.Code
             return script;
         }
 
-        private void AddNode(GameObject node)
+        private void AddNode(GameObject node, int id = -1)
         {
-            Nodes[currentIdToGenerate] = node;
+            int toTake = currentIdToGenerate;
+            if (id > -1)
+            {
+                toTake = id;
+            }
+            Nodes[toTake] = node;
             currentIdToGenerate++;
         }
 
