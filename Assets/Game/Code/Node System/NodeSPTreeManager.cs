@@ -225,7 +225,7 @@ namespace Assets.Game.Code
         {
             foreach (GameObject link in SelectedLinksList)
             {
-                link.GetComponent<NodeSPTree>().UnSelect();
+                link.GetComponent<NodeLink>().UnSelect();
             }
             SelectedNodesList.Clear();
         }
@@ -299,11 +299,10 @@ namespace Assets.Game.Code
 
             NodeSPTree selectedNodeScript = clipBoardNodeCopyList.First();
 
-            Console.WriteLine(selectedNodeScript.data.id);
-
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2));
             Vector3 firstNodePosition = new Vector3(selectedNodeScript.data.x, selectedNodeScript.data.y);
 
+            Dictionary<int, NodeSPTree> oldNodesIdsForNewNodes = new Dictionary<int, NodeSPTree>();
 
             foreach (NodeSPTree originalNode in clipBoardNodeCopyList)
             {
@@ -322,7 +321,21 @@ namespace Assets.Game.Code
                 node.IsLocked = false;
                 _ = node.UpdateImage();
                 Select(node.gameObject, true);
+
+                oldNodesIdsForNewNodes[originalNode.data.id] = node;
             }
+
+            foreach(NodeSPTree originalNode in clipBoardNodeCopyList)
+            {
+                foreach(int idLink in originalNode.data.linkedNodesIds)
+                {
+                    if(oldNodesIdsForNewNodes.ContainsKey(idLink) && oldNodesIdsForNewNodes.ContainsKey(originalNode.data.id))
+                    {
+                        oldNodesIdsForNewNodes[originalNode.data.id].AddJoin(oldNodesIdsForNewNodes[idLink]);
+                    }
+                }
+            }
+
 
         }
 
