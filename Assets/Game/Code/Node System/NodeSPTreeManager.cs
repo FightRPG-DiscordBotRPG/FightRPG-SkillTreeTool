@@ -55,7 +55,6 @@ namespace Assets.Game.Code
 
         public bool IsGridActive { get; private set; } = false;
 
-        private NodeSPTree clipBoardNodeCopy = null;
         private List<NodeSPTree> clipBoardNodeCopyList = new List<NodeSPTree>();
 
         // Use this for initialization
@@ -282,8 +281,6 @@ namespace Assets.Game.Code
                 link.Remove();
             }
             SelectedLinksList.Clear();
-
-
         }
 
         void RemoveNode(NodeSPTree node)
@@ -807,19 +804,8 @@ namespace Assets.Game.Code
 
             if (!isMultipleSelect)
             {
-                if (GetSelectedNode())
-                {
-                    GetSelectedNodeScript().UnSelect();
-                }
-
-                SelectedNodesList.Clear();
-
-                if (GetSelectedLink())
-                {
-                    GetSelectedLink().GetComponent<NodeLink>().UnSelect();
-                }
-
-                SelectedLinksList.Clear();
+                UnSelectAllNodes();
+                UnSelectAllLinks();
             }
 
 
