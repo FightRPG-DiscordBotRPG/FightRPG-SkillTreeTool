@@ -32388,8 +32388,8 @@ MonoBehaviour:
   EmptyNodePrefab: {fileID: 3859118785879730185, guid: 655be486d50c6d34d80af573b426f600, type: 3}
   NodesGroup: {fileID: 380854675}
   NodeJoinPrefab: {fileID: 4942333199955017864, guid: b63f40bc7deaef643997036774df7adc, type: 3}
-  SelectedNode: {fileID: 0}
-  SelectedLink: {fileID: 0}
+  SelectedNodesList: []
+  SelectedLinksList: []
   LockToggle: {fileID: 1286369070}
   IsInitialToggle: {fileID: 101741940}
   AddButton: {fileID: 585336364}
@@ -36873,7 +36873,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 234.99998
+      value: 235
       objectReference: {fileID: 0}
     - target: {fileID: 3128852465359493739, guid: 1720c13f66c236a41810f41427c27906, type: 3}
       propertyPath: m_AnchorMin.y

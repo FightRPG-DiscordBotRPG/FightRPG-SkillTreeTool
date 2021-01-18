@@ -17,13 +17,15 @@ public class NodeSPTree : MonoBehaviour
     public bool IsLocked = false;
     public GameObject JoinPrefab;
 
-    private float distanceFromCamera;
-    private Vector3 dragOffset;
-    private bool dragging, linking;
+    public float distanceFromCamera;
+    public Vector3 dragOffset;
+    public bool dragging, linking;
     private GameObject spawnedJoin;
 
-    public delegate void OnSelectionEventHandler(GameObject sender);
+    public delegate void OnSelectionEventHandler(GameObject sender, bool isMultipleSelect=false);
+    public delegate void OnDraggingEventHandler(bool isDragging);
     public event OnSelectionEventHandler OnSelectionEvent;
+    public event OnDraggingEventHandler OnDragging;
 
     public Material NonSelectedMaterial, SelectedMaterial;
 
@@ -49,21 +51,15 @@ public class NodeSPTree : MonoBehaviour
             return;
         }
 
-        OnSelectionEvent?.Invoke(gameObject);
+        OnSelectionEvent?.Invoke(gameObject, Input.GetKey(KeyCode.LeftShift));
 
 
         if (!IsLocked)
         {
-            distanceFromCamera = Vector3.Distance(transform.position, Camera.main.transform.position);
-
-            Vector3 ray = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            dragOffset = transform.position - ray;
-
-            dragging = true;
+            OnDragging?.Invoke(true);
         }
         else
         {
-            // 
             linking = true;
             spawnedJoin = Instantiate(JoinPrefab, new Vector3(transform.position.x, transform.position.y, 1f), Quaternion.identity, transform);
         }
@@ -76,7 +72,7 @@ public class NodeSPTree : MonoBehaviour
             return;
         }
 
-        dragging = false;
+        OnDragging?.Invoke(false);
         if (spawnedJoin)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -103,6 +99,7 @@ public class NodeSPTree : MonoBehaviour
     {
         if (dragging && !IsLocked)
         {
+            Console.Write(dragging);
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Vector3 rayPoint = ray.GetPoint(distanceFromCamera);
             transform.position = new Vector3(rayPoint.x, rayPoint.y, transform.position.z) + new Vector3(dragOffset.x, dragOffset.y);
@@ -252,7 +249,7 @@ public class NodeSPTree : MonoBehaviour
 
     void ReactNodeLinkSelected(GameObject nodeLink)
     {
-        OnSelectionEvent?.Invoke(nodeLink);
+        OnSelectionEvent?.Invoke(nodeLink, Input.GetKey(KeyCode.LeftShift));
     }
 
     public void ClearLink(GameObject link, bool clearOther=true)

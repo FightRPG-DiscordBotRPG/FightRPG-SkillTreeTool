@@ -18,7 +18,7 @@ namespace Assets.Game.Code
         public GameObject EmptyNodePrefab, NodesGroup, NodeJoinPrefab;
 
         [HideInInspector]
-        public GameObject SelectedNode = null, SelectedLink = null;
+        public List<GameObject> SelectedNodesList = new List<GameObject>(), SelectedLinksList = new List<GameObject>();
 
         /**
          * UI Related
@@ -56,6 +56,7 @@ namespace Assets.Game.Code
         public bool IsGridActive { get; private set; } = false;
 
         private NodeSPTree clipBoardNodeCopy = null;
+        private List<NodeSPTree> clipBoardNodeCopyList = new List<NodeSPTree>();
 
         // Use this for initialization
         void Start()
@@ -75,24 +76,34 @@ namespace Assets.Game.Code
 
         }
 
+        private GameObject GetSelectedNode()
+        {
+            return SelectedNodesList.FirstOrDefault();
+        }
+
+        private GameObject GetSelectedLink()
+        {
+            return SelectedLinksList.FirstOrDefault();
+        }
+
         private void UpdateSelectedNodePositionInUI()
         {
-            if (SelectedNode && !IsUiFocused())
+            if (GetSelectedNode() && !IsUiFocused())
             {
-                xPosUI.text = SelectedNode.transform.position.x.ToString();
-                yPosUI.text = SelectedNode.transform.position.y.ToString();
+                xPosUI.text = GetSelectedNode().transform.position.x.ToString();
+                yPosUI.text = GetSelectedNode().transform.position.y.ToString();
             }
         }
 
         public void UpdateFromUIIdentifier()
         {
-            if (SelectedNode && int.TryParse(IdUI.text, out int id))
+            if (GetSelectedNode() && int.TryParse(IdUI.text, out int id))
             {
 
                 NodeSPTree selectedNodeScript = GetSelectedNodeScript();
                 if (Nodes.ContainsKey(id))
                 {
-                    if (Nodes[id] != SelectedNode)
+                    if (Nodes[id] != GetSelectedNode())
                     {
                         GameObject toSwapNode = Nodes[id];
                         NodeSPTree toSwapScript = toSwapNode.GetComponent<NodeSPTree>();
@@ -100,7 +111,7 @@ namespace Assets.Game.Code
                         Nodes[selectedNodeScript.data.id] = toSwapNode;
                         toSwapScript.data.id = selectedNodeScript.data.id;
 
-                        Nodes[id] = SelectedNode;
+                        Nodes[id] = GetSelectedNode();
                         selectedNodeScript.data.id = id;
                     }
 
@@ -111,26 +122,26 @@ namespace Assets.Game.Code
                     // Move from index x to index y and change id
                     Nodes.Remove(selectedNodeScript.data.id);
                     selectedNodeScript.data.id = id;
-                    Nodes.Add(id, SelectedNode);
+                    Nodes.Add(id, GetSelectedNode());
                 }
             }
         }
 
         public void UpdateFromUIPositionX()
         {
-            if (SelectedNode && float.TryParse(xPosUI.text, out float x))
+            if (GetSelectedNode() && float.TryParse(xPosUI.text, out float x))
             {
 
-                SelectedNode.transform.position = new Vector3(x, SelectedNode.transform.position.y, SelectedNode.transform.position.z);
+                GetSelectedNode().transform.position = new Vector3(x, GetSelectedNode().transform.position.y, GetSelectedNode().transform.position.z);
                 GetSelectedNodeScript().UpdateLinksPositions();
             }
         }
 
         public void UpdateFromUIPositionY()
         {
-            if (SelectedNode && float.TryParse(yPosUI.text, out float y))
+            if (GetSelectedNode() && float.TryParse(yPosUI.text, out float y))
             {
-                SelectedNode.transform.position = new Vector3(SelectedNode.transform.position.x, y, SelectedNode.transform.position.z);
+                GetSelectedNode().transform.position = new Vector3(GetSelectedNode().transform.position.x, y, GetSelectedNode().transform.position.z);
                 GetSelectedNodeScript().UpdateLinksPositions();
             }
         }
@@ -142,8 +153,9 @@ namespace Assets.Game.Code
                 RemoveNode(kvp.Value.GetComponent<NodeSPTree>());
             }
 
-            SelectedNode = null;
-            SelectedLink = null;
+
+            SelectedNodesList.Clear();
+            SelectedLinksList.Clear();
             UpdateIds();
         }
 
@@ -153,30 +165,27 @@ namespace Assets.Game.Code
             {
                 TryToRemoveSelection();
             }
-            else if (Input.GetKeyDown(KeyCode.L) && SelectedNode)
+            else if (Input.GetKeyDown(KeyCode.L) && SelectedNodesList.Count > 0)
             {
-                NodeSPTree nodeScript = GetSelectedNodeScript();
-                nodeScript.IsLocked = !nodeScript.IsLocked;
-                LockToggle.isOn = nodeScript.IsLocked;
+                bool lockValue = !GetSelectedNodeScript().IsLocked;
+                foreach (GameObject node in SelectedNodesList)
+                {
+                    NodeSPTree nodeScript = node.GetComponent<NodeSPTree>();
+                    nodeScript.IsLocked = lockValue;
+                    LockToggle.isOn = nodeScript.IsLocked;
+                }
             }
             else if (Input.GetKeyDown(KeyCode.N))
             {
                 AddNewNode();
             }
-            else if (Input.GetKeyDown(KeyCode.Escape) && SelectedNode)
+            else if (Input.GetKeyDown(KeyCode.Escape) && SelectedNodesList.Count > 0)
             {
-                SelectedNode.GetComponent<NodeSPTree>().UnSelect();
-                SelectedNode = null;
-
-                Button editNodeButton = EditNodeButton.GetComponent<Button>();
-
-                CostUI.readOnly = false;
-                LockToggle.interactable = false;
-                IsInitialToggle.interactable = false;
-                editNodeButton.interactable = true;
-                xPosUI.readOnly = false;
-                yPosUI.readOnly = false;
-                IdUI.readOnly = false;
+                UnSelectAllNodes();
+            }
+            else if (Input.GetKeyDown(KeyCode.Escape) && SelectedLinksList.Count > 0)
+            {
+                UnSelectAllLinks();
             }
             else if (Input.GetKeyDown(KeyCode.G))
             {
@@ -186,13 +195,16 @@ namespace Assets.Game.Code
             {
                 EditNode();
             }
-            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C) && SelectedNode)
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.C) && GetSelectedNode())
             {
-                clipBoardNodeCopy = GetSelectedNodeScript();
+                foreach(GameObject node in SelectedNodesList)
+                {
+                    clipBoardNodeCopyList.Add(node.GetComponent<NodeSPTree>());
+                }
             }
-            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V) && clipBoardNodeCopy)
+            else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.V) && clipBoardNodeCopyList.Count > 0)
             {
-                CopyToNewNode(clipBoardNodeCopy);
+                PasteClipboardNodes();
             }
             else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.S))
             {
@@ -202,11 +214,40 @@ namespace Assets.Game.Code
             {
                 PSTreeApiManager.Instance.Reload();
             }
-            else if (Input.GetKey(KeyCode.Escape))
+            else if (Input.GetKey(KeyCode.Escape) && Input.GetKeyDown(KeyCode.LeftControl))
             {
                 PSTreeApiManager.Instance.confirmReloadDialogBox.Show("Exit", "Are you sure to quit? (Unsaved work will be lost)", null, Application.Quit, new string[] { "Quit", "Cancel" });
             }
 
+        }
+
+        private void UnSelectAllLinks()
+        {
+            foreach (GameObject link in SelectedLinksList)
+            {
+                link.GetComponent<NodeSPTree>().UnSelect();
+            }
+            SelectedNodesList.Clear();
+        }
+
+        private void UnSelectAllNodes()
+        {
+
+            foreach (GameObject node in SelectedNodesList)
+            {
+                node.GetComponent<NodeSPTree>().UnSelect();
+            }
+            SelectedNodesList.Clear();
+
+            Button editNodeButton = EditNodeButton.GetComponent<Button>();
+
+            CostUI.readOnly = false;
+            LockToggle.interactable = false;
+            IsInitialToggle.interactable = false;
+            editNodeButton.interactable = true;
+            xPosUI.readOnly = false;
+            yPosUI.readOnly = false;
+            IdUI.readOnly = false;
         }
 
         private bool IsUiFocused()
@@ -216,17 +257,33 @@ namespace Assets.Game.Code
 
         private void TryToRemoveSelection()
         {
-            if (SelectedNode)
+            //if (GetSelectedNode())
+            //{
+            //    RemoveNode(GetSelectedNodeScript());
+            //    SelectedNode = null;
+            //}
+            //else if (SelectedLink)
+            //{
+            //    NodeLink link = SelectedLink.GetComponent<NodeLink>();
+            //    link.Remove();
+            //    SelectedLink = null;
+            //}
+
+            foreach(GameObject node in SelectedNodesList)
             {
-                RemoveNode(GetSelectedNodeScript());
-                SelectedNode = null;
+                RemoveNode(node.GetComponent<NodeSPTree>());
             }
-            else if (SelectedLink)
+            SelectedNodesList.Clear();
+
+            // TODO: Verify if links exist or something ?
+            foreach(GameObject linkObject in SelectedLinksList)
             {
-                NodeLink link = SelectedLink.GetComponent<NodeLink>();
+                NodeLink link = linkObject.GetComponent<NodeLink>();
                 link.Remove();
-                SelectedLink = null;
             }
+            SelectedLinksList.Clear();
+
+
         }
 
         void RemoveNode(NodeSPTree node)
@@ -235,23 +292,38 @@ namespace Assets.Game.Code
             Nodes.Remove(node.data.id);
         }
 
-        private void CopyToNewNode(NodeSPTree originalNode)
+        private void PasteClipboardNodes()
         {
+            UnSelectAllNodes();
+            UnSelectAllLinks();
 
-            NodeData nData = JsonUtility.FromJson<NodeData>(JsonUtility.ToJson(originalNode.data));
+            NodeSPTree selectedNodeScript = clipBoardNodeCopyList.First();
+
+            Console.WriteLine(selectedNodeScript.data.id);
+
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2));
-            nData.x = spawnPos.x;
-            nData.y = spawnPos.y;
-            nData.linkedNodesIds.Clear();
-            nData.id = currentIdToGenerate;
-            NodeSPTree node = LoadNodeFromData(nData);
-            for (int i = 0; i < node.data.skillsUnlocked.Count; i++)
+            Vector3 firstNodePosition = new Vector3(selectedNodeScript.data.x, selectedNodeScript.data.y);
+
+
+            foreach (NodeSPTree originalNode in clipBoardNodeCopyList)
             {
-                nData.skillsUnlocked[i] = PSTreeApiManager.Instance.PossibleSkills[nData.skillsUnlocked[i].id];
+                NodeData nData = JsonUtility.FromJson<NodeData>(JsonUtility.ToJson(originalNode.data));
+               
+                nData.x = RoundSnapGrid(originalNode.data.x - firstNodePosition.x + spawnPos.x);
+                nData.y = RoundSnapGrid(originalNode.data.y - firstNodePosition.y + spawnPos.y);
+
+                nData.linkedNodesIds.Clear();
+                nData.id = currentIdToGenerate;
+                NodeSPTree node = LoadNodeFromData(nData);
+                for (int i = 0; i < node.data.skillsUnlocked.Count; i++)
+                {
+                    nData.skillsUnlocked[i] = PSTreeApiManager.Instance.PossibleSkills[nData.skillsUnlocked[i].id];
+                }
+                node.IsLocked = false;
+                _ = node.UpdateImage();
+                Select(node.gameObject, true);
             }
-            node.IsLocked = false;
-            _ = node.UpdateImage();
-            Select(node.gameObject);
+
         }
 
         public void AddNewNode()
@@ -268,6 +340,7 @@ namespace Assets.Game.Code
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
             AddNode(Node);
             script.OnSelectionEvent += Select;
+            script.OnDragging += SetDraggingForSelectedNodes;
             script.JoinPrefab = NodeJoinPrefab;
             UpdateIds();
             Select(Node);
@@ -276,7 +349,7 @@ namespace Assets.Game.Code
 
         public void EditNode()
         {
-            if (SelectedNode == null)
+            if (GetSelectedNode() == null)
             {
                 return;
             }
@@ -298,7 +371,7 @@ namespace Assets.Game.Code
 
         private void UpdateEditNodeUI()
         {
-            if (SelectedNode == null)
+            if (GetSelectedNode() == null)
             {
                 return;
             }
@@ -365,7 +438,7 @@ namespace Assets.Game.Code
 
         private void PopulateSkills(RecyclingListViewItem item, int rowIndex)
         {
-            NodeData data = SelectedNode.GetComponent<NodeSPTree>().data;
+            NodeData data = GetSelectedNode().GetComponent<NodeSPTree>().data;
             var child = item as ListViewItemSimpleText;
             child.SetText(data.skillsUnlocked[rowIndex].name);
             child.id = data.skillsUnlocked[rowIndex].id;
@@ -487,7 +560,7 @@ namespace Assets.Game.Code
 
         public void UpdateStatValue(TMP_InputField sender)
         {
-            if (SelectedNode != null)
+            if (GetSelectedNode() != null)
             {
                 NodeSPTree node = GetSelectedNodeScript();
                 node.data.stats[sender.transform.parent.name] = int.Parse(sender.text);
@@ -495,7 +568,7 @@ namespace Assets.Game.Code
         }
         public void UpdateSecondaryStatValue(TMP_InputField sender)
         {
-            if (SelectedNode != null)
+            if (GetSelectedNode() != null)
             {
                 NodeSPTree node = GetSelectedNodeScript();
                 node.data.secondaryStats[sender.transform.parent.name] = int.Parse(sender.text);
@@ -511,6 +584,7 @@ namespace Assets.Game.Code
 
             NodeSPTree script = Node.GetComponent<NodeSPTree>();
             script.OnSelectionEvent += Select;
+            script.OnDragging += SetDraggingForSelectedNodes;
             script.JoinPrefab = NodeJoinPrefab;
             script.data = nData;
             script.IsLocked = true;
@@ -671,7 +745,7 @@ namespace Assets.Game.Code
 
         private NodeSPTree GetSelectedNodeScript()
         {
-            return SelectedNode?.GetComponent<NodeSPTree>();
+            return GetSelectedNode()?.GetComponent<NodeSPTree>();
         }
 
         public void UpdateIds()
@@ -686,9 +760,29 @@ namespace Assets.Game.Code
             }
         }
 
-        private void Select(GameObject toSelectGameObject)
+        private void SetDraggingForSelectedNodes(bool isDragging)
         {
-            if (SelectedNode == toSelectGameObject || SelectedLink == toSelectGameObject)
+            foreach(GameObject node in SelectedNodesList)
+            {
+                NodeSPTree nodeScript = node.GetComponent<NodeSPTree>();
+                if (isDragging)
+                {
+                    nodeScript.distanceFromCamera = Vector3.Distance(nodeScript.transform.position, Camera.main.transform.position);
+
+                    Vector3 ray = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                    nodeScript.dragOffset = nodeScript.transform.position - ray;
+                    nodeScript.dragging = isDragging;
+                } else
+                {
+                    nodeScript.dragging = isDragging;
+                }
+
+            }
+        }
+
+        private void Select(GameObject toSelectGameObject, bool isMultipleSelect = false)
+        {
+            if (SelectedNodesList.Contains(toSelectGameObject) || SelectedLinksList.Contains(toSelectGameObject))
             {
                 return;
             }
@@ -698,25 +792,31 @@ namespace Assets.Game.Code
 
             Button editNodeButton = EditNodeButton.GetComponent<Button>();
 
-            if (SelectedNode)
+            if (!isMultipleSelect)
             {
-                GetSelectedNodeScript().UnSelect();
+                if (GetSelectedNode())
+                {
+                    GetSelectedNodeScript().UnSelect();
+                }
+
+                SelectedNodesList.Clear();
+
+                if (GetSelectedLink())
+                {
+                    GetSelectedLink().GetComponent<NodeLink>().UnSelect();
+                }
+
+                SelectedLinksList.Clear();
             }
 
-            SelectedNode = null;
 
-            if (SelectedLink)
-            {
-                SelectedLink.GetComponent<NodeLink>().UnSelect();
-            }
 
-            SelectedLink = null;
 
 
 
             if (scriptNode)
             {
-                SelectedNode = toSelectGameObject;
+                SelectedNodesList.Add(toSelectGameObject);
                 CostUI.readOnly = false;
                 xPosUI.readOnly = false;
                 yPosUI.readOnly = false;
@@ -743,7 +843,7 @@ namespace Assets.Game.Code
                 LockToggle.interactable = false;
                 IsInitialToggle.interactable = true;
 
-                SelectedLink = toSelectGameObject;
+                SelectedLinksList.Add(toSelectGameObject);
 
                 editNodeButton.interactable = false;
 
@@ -755,7 +855,7 @@ namespace Assets.Game.Code
 
         public void ChangeSelectedCost()
         {
-            if (SelectedNode)
+            if (GetSelectedNode())
             {
                 string text = CostUI.text;
                 GetSelectedNodeScript().SetCost(int.Parse(text));
@@ -764,7 +864,7 @@ namespace Assets.Game.Code
 
         public void ChangeLockState()
         {
-            if (SelectedNode)
+            if (GetSelectedNode())
             {
                 GetSelectedNodeScript().IsLocked = LockToggle.isOn;
             }
@@ -772,7 +872,7 @@ namespace Assets.Game.Code
 
         public void ChangeIsInitial()
         {
-            if (SelectedNode)
+            if (GetSelectedNode())
             {
                 GetSelectedNodeScript().data.isInitial = IsInitialToggle.isOn;
             }
